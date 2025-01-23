@@ -1,5 +1,5 @@
-use std::thread;
 use std::time::Duration;
+use std::thread;
 
 
 pub fn sleep(time: u64) {

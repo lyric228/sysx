@@ -1,8 +1,6 @@
-use std::collections::HashMap;
 use std::process::Command;
 use std::ffi::OsStr;
 use std::io::stdin;
-use std::fs;
 
 
 pub fn silent_cmd<S: AsRef<OsStr>>(command: S) -> String {
@@ -34,25 +32,4 @@ pub fn input() -> String {
         .expect("Не удалось получить ввод");
 
     input_text.trim().to_string()
-}
-
-pub fn info() -> HashMap<String, String> {
-    let os_info = fs::read_to_string("/etc/os-release")
-        .expect("Не удалось прочитать файл /etc/os-release");
-
-    let mut os_map = HashMap::new();
-
-    for line in os_info.lines() {
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        let mut parts = line.splitn(2, "=");
-        if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
-            let value = value.trim_matches('"');
-            os_map.insert(key.to_string(), value.to_string());
-        }
-    }
-
-    os_map
 }
