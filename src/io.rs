@@ -1,14 +1,13 @@
 use std::process::Command;
-use std::ffi::OsStr;
 use std::io::stdin;
 
 
-pub fn silent_cmd<S: AsRef<OsStr>>(command: S) -> String {
+pub fn silent_cmd(command: &str) -> String {
     let output = Command::new("sh")
         .arg("-c")
         .arg(command)
         .output()
-        .expect("Не удалось выполнить команду");
+        .expect(format!("{}", command).as_str());
 
     String::from_utf8_lossy(    
         if output.status.success() {
@@ -19,7 +18,7 @@ pub fn silent_cmd<S: AsRef<OsStr>>(command: S) -> String {
     ).to_string()
 }
 
-pub fn cmd<S: AsRef<OsStr>>(command: S) -> String {
+pub fn cmd(command: &str) -> String {
     let out = silent_cmd(command);
     println!("{}", out);
     out
@@ -29,7 +28,7 @@ pub fn input() -> String {
     let mut input_text = String::new();
     stdin()
         .read_line(&mut input_text)
-        .expect("Не удалось получить ввод");
+        .expect("Input reading error");
 
     input_text.trim().to_string()
 }
