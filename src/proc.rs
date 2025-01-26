@@ -9,3 +9,8 @@ pub fn create() {
 pub fn find() {
 
 }
+
+
+pub fn inject() {
+
+}

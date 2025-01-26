@@ -4,7 +4,7 @@ pub mod proc;
 pub mod utils;
 
 pub mod linux {
-    pub mod info;
+    pub mod system;
 }
 
 pub mod windows {

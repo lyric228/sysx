@@ -2,26 +2,24 @@ use std::any::Any;
 use regex::Regex;
 
 
+pub fn simplify_nonlist_type(type_str: &str) -> &str {
+    type_str
+        .split("::")
+        .last()
+        .unwrap_or("undefined")
+}
+
 pub fn get_type<T: Any>(_: &T) -> String {
     String::from(std::any::type_name::<T>())
 }
 
-fn simplify_nonlist_type(type_str: &String) -> String {
-    let last_el = type_str.split("::").last();
-    if last_el.is_some() {
-        String::from(last_el.unwrap())
-    } else {
-        String::from("undefined")
-    }
-}
-
-pub fn is_list_like(type_str: &String) -> bool {
+pub fn is_list_like(type_str: &str) -> bool {
     type_str.contains("<") || type_str.contains(">")
 }
 
-pub fn simplify_type(type_str: String) -> String {
+pub fn simplify_type<'a>(type_str: &'a str) -> String {
     if !is_list_like(&type_str) {
-        return simplify_nonlist_type(&type_str);
+        return simplify_nonlist_type(type_str).to_string();
     }
     
     let re = Regex::new(r"([a-zA-Z_][a-zA-Z0-9_]*::)+").unwrap();
