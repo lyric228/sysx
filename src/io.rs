@@ -1,10 +1,28 @@
+use std::io::{stdin, Read, Error};
 use std::process::Command;
-use std::io::stdin;
 
 
+#[cfg(unix)]
 pub fn silent_cmd(command: &str) -> String {
     let output = Command::new("sh")
         .arg("-c")
+        .arg(command)
+        .output()
+        .unwrap();
+
+    String::from_utf8_lossy(    
+        if output.status.success() {
+            &output.stdout
+        } else {
+            &output.stderr
+        }
+    ).to_string()
+}
+
+#[cfg(windows)]
+pub fn silent_cmd(command: &str) -> String {
+    let output = Command::new("cmd")
+        .arg("/c")
         .arg(command)
         .output()
         .expect(format!("{}", command).as_str());
@@ -18,17 +36,21 @@ pub fn silent_cmd(command: &str) -> String {
     ).to_string()
 }
 
+#[cfg(not(any(unix, windows)))]
+fn silent_cmd(command: &str) -> String {
+    eprintln!("Sorry! Unsupported OS :(");
+}
+
 pub fn cmd(command: &str) -> String {
     let out = silent_cmd(command);
-    println!("{}", out);
+    println!("{out}");
     out
 }
 
-pub fn input() -> String {
+pub fn input() -> Result<String, Error> {
     let mut input_text = String::new();
-    stdin()
-        .read_line(&mut input_text)
-        .expect("Input reading error");
+    let _ = stdin()
+        .read_to_string(&mut input_text);
 
-    input_text.trim().to_string()
+    Ok(input_text)
 }

@@ -1,1 +1,1 @@
-# lrst: Rust library for Linux development
+# lrst: Rust library for Linux development (and maybe other...)

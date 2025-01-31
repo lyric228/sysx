@@ -6,7 +6,7 @@ pub fn simplify_nonlist_type(type_str: &str) -> &str {
     type_str
         .split("::")
         .last()
-        .unwrap_or("undefined")
+        .unwrap_or("unknown")
 }
 
 pub fn get_type<T: Any>(_: &T) -> String {

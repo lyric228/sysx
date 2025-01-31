@@ -1,35 +1,48 @@
-use std::fs as std_fs;
+use std::io::{Result, Write};
 use std::path::Path;
+use std::fs;
 
 
-pub struct File {
-    path: &'static str
+/// Better File
+pub struct BFile {
+    path: &'static str,
 }
 
-impl File {
+impl BFile {
     pub fn new(path: &'static str) -> Self {
-        let file = File {
-            path
-        };
-        if !file.exists() {
-            let _ = std_fs::File::create(path);
-        }
-        file
+        BFile { path }
     }
 
+    /// Проверяет существование файла
     pub fn exists(&self) -> bool {
-        Path::new(&self.path).exists()
+        Path::new(self.path).exists()
     }
 
-    pub fn read(&self) -> String {
-        std_fs::read_to_string(&self.path).unwrap()
+    /// Читает содержимое файла
+    pub fn read(&self) -> Result<String> {
+        fs::read_to_string(self.path)
     }
 
-    pub fn write(&self, data: &str) {
-        let _ = &self.overwrite(format!("{}{}", &self.read(), data).as_str());
+    /// Добавляет данные в конец файла
+    pub fn append(&self, data: &str) -> Result<()> {
+        fs::OpenOptions::new()
+            .write(true)
+            .append(true)
+            .create(true)
+            .open(self.path)?
+            .write_all(data.as_bytes())?;
+            
+        Ok(())
     }
 
-    pub fn overwrite(&self, data: &str) {
-        let _ = std_fs::write(&self.path, data);
+    /// Полностью перезаписывает содержимое файла
+    pub fn write(&self, data: &str) -> Result<()> {
+        // Создаем родительские директории при необходимости
+        if let Some(parent) = Path::new(self.path).parent() {
+            fs::create_dir_all(parent)?;
+        }
+        
+        fs::write(self.path, data)?;
+        Ok(())
     }
 }
