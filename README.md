@@ -1,1 +1,1 @@
-# lrst: Rust library for Linux development (and maybe other...)
+# sysx: Rust library for System development
