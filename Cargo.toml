@@ -15,12 +15,3 @@ features = ["std", "unicode-perl"]
 
 [target.'cfg(windows)'.dependencies]
 winapi = "0.3.9"
-
-[features]
-bash = []
-zsh = []
-sh = []
-cmd = []
-silent = []
-
-default = []
