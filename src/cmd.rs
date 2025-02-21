@@ -45,8 +45,26 @@ pub fn run(command: &str) -> Result<(String, Output)> {
     Ok(output)
 }
 
-pub fn input_buf(mut buffer: &mut String) -> Result<()> {
-    std::io::stdin().read_to_string(&mut buffer)?;
+#[macro_export]
+macro_rules! silent_runf {
+    ($($arg:tt)*) => {
+        silent_run(&format!($($arg)*))
+    }
+}
+
+#[macro_export]
+macro_rules! runf {
+    ($($arg:tt)*) => {
+        run(&format!($($arg)*))
+    }
+}
+
+pub fn input_buf(buffer: &mut String) -> Result<()> {
+    std::io::stdin().read_line(buffer)
+        .map_err(|e| anyhow::anyhow!("Failed to read line: {}", e))?;
+    if buffer.ends_with('\n') {
+        buffer.pop();
+    }
     Ok(())
 }
 
