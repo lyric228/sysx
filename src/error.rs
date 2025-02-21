@@ -1,3 +1,4 @@
+use anyhow::Error as AnyhowError;
 use rand::distr::uniform::Error as RandUniformError;
 use regex::Error as RegexError;
 use thiserror::Error;
@@ -48,6 +49,22 @@ pub enum SysxError {
     /// I/O error.
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+
+    /// Anyhow error.
+    #[error(transparent)]
+    AnyhowError(#[from] AnyhowError),
+
+    /// ParseInt error.
+    #[error(transparent)]
+    ParseIntError(#[from] std::num::ParseIntError),
+
+    /// ParseFloat error.
+    #[error(transparent)]
+    ParseFloatError(#[from] std::num::ParseFloatError),
+
+    /// FromUtf8 error.
+    #[error(transparent)]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
 }
 
 /// Errors related to time-based operations (e.g., sleep).

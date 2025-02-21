@@ -1,7 +1,7 @@
 use std::time::Duration;
-use std::thread;
 use std::str::FromStr;
 use thiserror::Error;
+use std::thread;
 
 
 /// Sleep with support for multiple input types and units
@@ -62,7 +62,6 @@ impl SleepTime {
 }
 
 impl From<u64> for SleepTime {
-    /// Interpret u64 as milliseconds
     fn from(ms: u64) -> Self {
         SleepTime { seconds: ms as f64 / 1000.0 }
     }
@@ -77,6 +76,12 @@ impl From<Duration> for SleepTime {
 impl From<f64> for SleepTime {
     fn from(secs: f64) -> Self {
         SleepTime { seconds: secs }
+    }
+}
+
+impl From<&str> for SleepTime {
+    fn from(s: &str) -> Self {
+        s.parse().unwrap_or_else(|e| panic!("Failed to parse time string: {}", e))
     }
 }
 

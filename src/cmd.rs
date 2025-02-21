@@ -1,35 +1,61 @@
-use std::process::{Command, Output};
+use std::{io::Read, process::{Command, Output}};
+use anyhow::Context;
+
 use crate::error::Result;
-use std::io::Read;
 
 
-pub fn run(program: &str, arg: &str, command: &str) -> Result<String> {
-    let output: Output = Command::new(program)
-        .arg(arg)
-        .arg(command)
-        .output()?;
-        
+pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
+    let trimmed = command_line.trim();
+
+    if trimmed.is_empty() {
+        return Err(anyhow::anyhow!("Empty command line").into());
+    }
+
+    let mut parts = shell_words::split(trimmed)
+        .context("Failed to parse command line")?;
+
+    let program = parts.remove(0);
+    let args = parts;
+
+    let output: Output = Command::new(&program)
+        .args(&args)
+        .output()
+        .with_context(|| format!(
+            "Failed to execute command '{}'", 
+            command_line
+        ))?;
+
     let result = if output.status.success() {
-        output.stdout
+        output.clone().stdout
     } else {
-        output.stderr
+        output.clone().stderr
     };
 
-    Ok(String::from_utf8_lossy(&result).to_string())
+    let output_str = String::from_utf8(result)
+        .map_err(|e| anyhow::anyhow!(
+            "Invalid UTF-8 in output: {}", e
+        ))?;
+
+    Ok((output_str, output))
 }
 
-pub fn sh(command: &str) -> Result<String> {
-    let out = run("sh", "-c", command)?;
-    println!("{out}");
-    Ok(out)
+pub fn run(command: &str) -> Result<(String, Output)> {
+    let output = silent_run(command)?;
+    println!("{}", output.0);
+    Ok(output)
+}
+
+pub fn input_buf(mut buffer: &mut String) -> Result<()> {
+    std::io::stdin().read_to_string(&mut buffer)?;
+    Ok(())
 }
 
 pub fn input() -> Result<String> {
     let mut input_text = String::new();
-    std::io::stdin().read_to_string(&mut input_text)?;
+    input_buf(&mut input_text)?;
     Ok(input_text)
 }
 
-pub fn args() -> Vec<String> {
+pub fn get_args() -> Vec<String> {
     std::env::args().collect()
 }
