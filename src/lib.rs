@@ -1,4 +1,5 @@
 pub mod cmd;
+pub mod env;
 pub mod fs;
 pub mod ip;
 pub mod bin;

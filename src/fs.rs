@@ -308,3 +308,20 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
     }
     normalized
 }
+
+
+pub fn get_dir_size(path: &str) -> std::io::Result<u64> {
+    let mut total = 0;
+
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        let meta = entry.metadata()?;
+        if meta.is_dir() {
+            total += get_dir_size(entry.path().to_str().unwrap())?;
+        } else {
+            total += meta.len();
+        }
+    }
+    
+    Ok(total)
+}

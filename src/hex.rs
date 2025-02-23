@@ -1,4 +1,4 @@
-use crate::error::*;
+pub use crate::error::{Result, SysxError};
 
 
 pub fn hex_to_str(hex: &str) -> Result<String> {
@@ -6,7 +6,7 @@ pub fn hex_to_str(hex: &str) -> Result<String> {
 
     hex.split_whitespace()
         .map(|s| u8::from_str_radix(s, 16).map_err(SysxError::from)) // Преобразуем ParseIntError в SysxError
-        .collect::<Result<Vec<u8>>>() // теперь итератор даёт значения Result<u8, SysxError>
+        .collect::<Result<Vec<u8>>>()
         .and_then(|bytes| String::from_utf8(bytes).map_err(SysxError::from))
 }
 

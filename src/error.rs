@@ -1,5 +1,5 @@
-use anyhow::Error as AnyhowError;
 use rand::distr::uniform::Error as RandUniformError;
+use anyhow::Error as AnyhowError;
 use regex::Error as RegexError;
 use thiserror::Error;
 
@@ -65,6 +65,10 @@ pub enum SysxError {
     /// FromUtf8 error.
     #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+    /// Path strip prefix error
+    #[error("Path strip prefix error: {0}")]
+    StripPrefixError(#[from] std::path::StripPrefixError),
 }
 
 /// Errors related to time-based operations (e.g., sleep).

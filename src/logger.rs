@@ -1,6 +1,7 @@
 pub use colored::{Colorize, ColoredString, Color};
 pub use chrono::Local;
 
+
 /// Logging level with associated styles
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
@@ -15,16 +16,16 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
-    pub fn style(&self) -> (char, Color) {
+    pub fn style(&self) -> Color {
         match self {
-            LogLevel::Info => ('ℹ', Color::Blue),
-            LogLevel::Success => ('✅', Color::Green),
-            LogLevel::Warning => ('⚠', Color::Yellow),
-            LogLevel::Error => ('❌', Color::Red),
-            LogLevel::Bug => ('🐛', Color::BrightRed),
-            LogLevel::Fatal => ('💀', Color::BrightRed),
-            LogLevel::Debug => ('🐞', Color::Magenta),
-            LogLevel::Trace => ('🔍', Color::Cyan),
+            LogLevel::Info => Color::Blue,
+            LogLevel::Success => Color::Green,
+            LogLevel::Warning => Color::Yellow,
+            LogLevel::Error => Color::Red,
+            LogLevel::Bug => Color::BrightRed,
+            LogLevel::Fatal => Color::BrightRed,
+            LogLevel::Debug => Color::Magenta,
+            LogLevel::Trace => Color::Cyan,
         }
     }
 }
@@ -80,7 +81,7 @@ macro_rules! log_internal {
     ($level:expr, $msg:expr, $ctx:expr) => {{
         use $crate::logger::LogLevel;
         
-        let (icon, color) = $level.style();
+        let color = $level.style();
         let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
         let level_name = format!("{:?}", $level).to_uppercase();
         
@@ -93,9 +94,8 @@ macro_rules! log_internal {
         let ctx_str = $ctx.map(|c: String| format!("\n  ↳ {}", c.dimmed()));
         
         println!(
-            "{}   {} {}",
+            "{} {} {}",
             timestamp.to_string().dimmed(),
-            // icon.to_string().color(color),
             styled_msg,
             ctx_str.unwrap_or_default(),
         );
