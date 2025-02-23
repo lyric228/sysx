@@ -1,8 +1,22 @@
-use rand::distr::{Alphanumeric, Uniform, uniform::SampleUniform};
-use crate::error::{Error, Result};
+
 use std::cmp::Ordering;
-use rand::{rng, Rng};
 use std::sync::Arc;
+
+use rand::distr::{
+    uniform::SampleUniform,
+    Alphanumeric,
+    Uniform,
+};
+use rand::{
+    Rng,
+    rng,
+};
+// TODO: Check rand::prelude, maybe choto krutoe
+
+use crate::{
+    Error,
+    Result,
+};
 
 
 /// Generates a random value within the inclusive range [min, max].
@@ -15,8 +29,8 @@ use std::sync::Arc;
 ///
 /// # Examples
 /// ```
-/// let int = sysx::rand::random(1, 10).unwrap();
-/// let float = sysx::rand::random(5.0, 7.5).unwrap();
+/// let int = random(1, 10).unwrap();
+/// let float = random(5.0, 7.5).unwrap();
 /// ```
 pub fn random<T>(min: T, max: T) -> Result<T>
 where
@@ -41,7 +55,7 @@ where
 ///
 /// # Examples
 /// ```
-/// let random_bool = sysx::rand::random_bool().unwrap();
+/// let random_bool = random_bool().unwrap();
 /// ```
 pub fn random_bool() -> Result<bool> {
     let mut rng = rng();
@@ -60,9 +74,9 @@ pub fn random_bool() -> Result<bool> {
 ///
 /// # Examples
 /// ```
-/// let rand_str = sysx::rand::random_string(10, None).unwrap();
+/// let rand_str = random_string(10, None).unwrap();
 /// let custom_charset = "abcdef012345";
-/// let rand_str_custom = sysx::rand::random_string(15, Some(custom_charset)).unwrap();
+/// let rand_str_custom = random_string(15, Some(custom_charset)).unwrap();
 /// ```
 pub fn random_string(length: usize, charset: Option<&str>) -> Result<String> {
     let mut rng = rng();
@@ -96,7 +110,7 @@ pub fn random_string(length: usize, charset: Option<&str>) -> Result<String> {
 ///
 /// # Examples
 /// ```
-/// let random_bytes = sysx::rand::random_bytes(16).unwrap();
+/// let random_bytes = random_bytes(16).unwrap();
 /// ```
 pub fn random_bytes(length: usize) -> Result<Vec<u8>> {
     let mut rng = rng();
@@ -114,7 +128,7 @@ pub fn random_bytes(length: usize) -> Result<Vec<u8>> {
 ///
 /// # Examples
 /// ```
-/// let mut iter = sysx::rand::random_iter(1, 100).unwrap();
+/// let mut iter = random_iter(1, 100).unwrap();
 /// let first_value = iter.next().unwrap();
 /// ```
 pub fn random_iter<T>(min: T, max: T) -> Result<impl Iterator<Item = T>>
@@ -143,7 +157,7 @@ where
 ///
 /// # Examples
 /// ```
-/// let value = sysx::rand::random_range(1..=10).unwrap();
+/// let value = random_range(1..=10).unwrap();
 /// ```
 /// Generates a random value from an inclusive range.
 ///
@@ -152,7 +166,7 @@ where
 ///
 /// # Examples
 /// ```
-/// let value = sysx::rand::random_range(1..=10).unwrap();
+/// let value = random_range(1..=10).unwrap();
 /// ```
 pub fn random_range<T>(range: std::ops::RangeInclusive<T>) -> Result<T>
 where
@@ -175,7 +189,7 @@ where
 ///
 /// # Examples
 /// ```
-/// let flag = sysx::rand::random_ratio(1, 3).unwrap(); // Approximately 33% chance true
+/// let flag = random_ratio(1, 3).unwrap(); // Approximately 33% chance true
 /// ```
 pub fn random_ratio(numerator: u32, denominator: u32) -> Result<bool> {
     if denominator == 0 {

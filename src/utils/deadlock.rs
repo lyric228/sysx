@@ -3,11 +3,12 @@
 /// deadlocked thread, including the thread ID and backtrace. This function runs indefinitely.
 /// Example:
 /// ```rust
+/// use sysx::deadlock::deadlock_detection_thread;
 /// use std::thread;
 /// 
 /// fn main() {
 ///     thread::spawn(deadlock_detection_thread);
-///     ...
+///     // You'r code
 /// }
 /// ```
 pub fn deadlock_detection_thread() {
