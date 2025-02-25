@@ -1,8 +1,4 @@
-use crate::{
-    Result,
-    SysxError,
-};
-
+use crate::{Result, SysxError};
 
 /// Преобразует строку из бинарных значений в обычную строку UTF-8.
 ///
@@ -47,9 +43,10 @@ pub fn str_to_bin(text: &str) -> String {
 /// assert!(!is_valid_bin("01001000 01100101x"));
 /// ```
 pub fn is_valid_bin(bin: &str) -> bool {
-    !bin.is_empty() && bin
-        .chars()
-        .all(|c| c.is_whitespace() || c == '0' || c == '1')
+    !bin.is_empty()
+        && bin
+            .chars()
+            .all(|c| c.is_whitespace() || c == '0' || c == '1')
 }
 
 /// Строгая проверка бинарной строки.
@@ -64,11 +61,8 @@ pub fn is_valid_bin_strict(bin: &str) -> bool {
     if bin.is_empty() {
         return false;
     }
-    
-    let trimmed: String = bin
-        .chars()
-        .filter(|c| !c.is_whitespace())
-        .collect();
+
+    let trimmed: String = bin.chars().filter(|c| !c.is_whitespace()).collect();
 
     trimmed.len() % 8 == 0 && trimmed.chars().all(|c| c == '0' || c == '1')
 }
@@ -87,14 +81,11 @@ pub fn is_valid_bin_strict(bin: &str) -> bool {
 /// assert!(fmt_bin("0100100").is_err());
 /// ```
 pub fn fmt_bin(bin: &str) -> Result<String> {
-    let cleaned: String = bin
-        .chars()
-        .filter(|c| *c == '0' || *c == '1')
-        .collect();
+    let cleaned: String = bin.chars().filter(|c| *c == '0' || *c == '1').collect();
 
     if cleaned.is_empty() || cleaned.len() % 8 != 0 {
         return Err(SysxError::InvalidSyntax(
-            "Binary string length must be multiple of 8".to_string()
+            "Binary string length must be multiple of 8".to_string(),
         ));
     }
 

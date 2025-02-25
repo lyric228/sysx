@@ -1,6 +1,5 @@
 use sysx::io::log::*;
 
-
 #[test]
 fn test_log_levels() {
     assert_eq!(LogLevel::Info.style(), Color::Blue);

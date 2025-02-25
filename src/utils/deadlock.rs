@@ -5,7 +5,7 @@
 /// ```rust
 /// use sysx::deadlock::deadlock_detection_thread;
 /// use std::thread;
-/// 
+///
 /// fn main() {
 ///     thread::spawn(deadlock_detection_thread);
 ///     // You'r code

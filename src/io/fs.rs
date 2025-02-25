@@ -1,28 +1,17 @@
-use std::path::{
-    Component,
-    Path,
-    PathBuf,
-};
-use std::fs::{
-    self,
-    OpenOptions,
-};
-use std::io::{
-    Result,
-    Write,
-};
 use std::env::current_dir as cur_dir;
+use std::fs::{self, OpenOptions};
+use std::io::{Result, Write};
+use std::path::{Component, Path, PathBuf};
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
-
 /// Структура для работы с файлами в Unix-подобных системах
-/// 
+///
 /// # Example
 /// ```no_run
 /// use sysx::fs::BFile;
-/// 
+///
 /// let file = BFile::new("example.txt")?;
 /// file.write("Hello, World!")?;
 /// ```
@@ -32,17 +21,17 @@ pub struct BFile {
 
 impl BFile {
     /// Создает новый экземпляр BFile с указанным путем
-    /// 
+    ///
     /// # Arguments
     /// * `path` - Путь к файлу (относительный или абсолютный)
-    /// 
+    ///
     /// # Returns
     /// * `Result<BFile>` - Результат создания файла
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("docs/example.txt")?;
     /// ```
     pub fn new<P: Into<PathBuf>>(path: P) -> Result<Self> {
@@ -55,14 +44,14 @@ impl BFile {
     }
 
     /// Проверяет существование файла
-    /// 
+    ///
     /// # Returns
     /// * `bool` - true если файл существует, false если нет
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("example.txt")?;
     /// if file.exists() {
     ///     println!("Файл существует");
@@ -73,14 +62,14 @@ impl BFile {
     }
 
     /// Читает содержимое файла в строку UTF-8
-    /// 
+    ///
     /// # Returns
     /// * `Result<String>` - Содержимое файла или ошибка чтения
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("example.txt")?;
     /// let content = file.read()?;
     /// println!("{}", content);
@@ -90,17 +79,17 @@ impl BFile {
     }
 
     /// Добавляет данные в конец файла
-    /// 
+    ///
     /// # Arguments
     /// * `data` - Строка для добавления в файл
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Результат операции добавления
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("log.txt")?;
     /// file.append("Новая строка лога\n")?;
     /// ```
@@ -115,17 +104,17 @@ impl BFile {
     }
 
     /// Записывает данные в файл, заменяя текущее содержимое
-    /// 
+    ///
     /// # Arguments
     /// * `data` - Строка для записи в файл
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Результат операции записи
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("config.txt")?;
     /// file.write("новая конфигурация")?;
     /// ```
@@ -138,14 +127,14 @@ impl BFile {
     }
 
     /// Удаляет файл, если он существует
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Результат операции удаления
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("temp.txt")?;
     /// file.delete()?;
     /// ```
@@ -157,17 +146,17 @@ impl BFile {
     }
 
     /// Переименовывает файл и обновляет внутренний путь
-    /// 
+    ///
     /// # Arguments
     /// * `new_path` - Новый путь для файла
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Результат операции переименования
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let mut file = BFile::new("old.txt")?;
     /// file.rename("new.txt")?;
     /// ```
@@ -193,14 +182,14 @@ impl BFile {
         Ok(())
     }
     /// Возвращает ссылку на текущий путь файла
-    /// 
+    ///
     /// # Returns
     /// * `&Path` - Ссылка на путь файла
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("data.txt")?;
     /// println!("Путь к файлу: {:?}", file.path());
     /// ```
@@ -209,14 +198,14 @@ impl BFile {
     }
 
     /// Получает права доступа файла в восьмеричном формате (только Unix)
-    /// 
+    ///
     /// # Returns
     /// * `Result<String>` - Строка с правами доступа в формате "644"
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("script.sh")?;
     /// println!("Права доступа: {}", file.get_permissions()?);
     /// ```
@@ -227,17 +216,17 @@ impl BFile {
     }
 
     /// Устанавливает права доступа файла (только Unix)
-    /// 
+    ///
     /// # Arguments
     /// * `perm_str` - Строка с правами в восьмеричном формате (например, "755")
-    /// 
+    ///
     /// # Returns
     /// * `Result<()>` - Результат установки прав
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("script.sh")?;
     /// file.set_permissions("755")?; // Установить права на исполнение
     /// ```
@@ -246,7 +235,7 @@ impl BFile {
         let mode = u32::from_str_radix(perm_str, 8).map_err(|_| {
             std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
-                "Некорректный формат прав доступа Unix"
+                "Некорректный формат прав доступа Unix",
             )
         })?;
         let permissions = fs::Permissions::from_mode(mode);
@@ -254,14 +243,14 @@ impl BFile {
     }
 
     /// Получает метаданные файла
-    /// 
+    ///
     /// # Returns
     /// * `Result<fs::Metadata>` - Метаданные файла или ошибка
-    /// 
+    ///
     /// # Example
     /// ```no_run
     /// use sysx::fs::BFile;
-    /// 
+    ///
     /// let file = BFile::new("data.txt")?;
     /// let metadata = file.get_metadata()?;
     /// println!("Размер файла: {} байт", metadata.len());
@@ -271,20 +260,19 @@ impl BFile {
     }
 }
 
-
 /// Нормализует путь, удаляя избыточные компоненты вроде "." и ".."
-/// 
+///
 /// # Arguments
 /// * `path` - Исходный путь для нормализации
-/// 
+///
 /// # Returns
 /// * `PathBuf` - Нормализованный путь
-/// 
+///
 /// # Example
 /// ```no_run
 /// use sysx::fs::normalize_path;
 /// use std::path::PathBuf;
-/// 
+///
 /// let path = normalize_path("./docs/../docs/file.txt");
 /// assert_eq!(path, PathBuf::from("docs/file.txt"));
 /// ```
@@ -303,17 +291,17 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 }
 
 /// Рекурсивно вычисляет размер директории
-/// 
+///
 /// # Arguments
 /// * `path` - Путь к директории
-/// 
+///
 /// # Returns
 /// * `Result<u64>` - Размер директории в байтах
-/// 
+///
 /// # Example
 /// ```no_run
 /// use sysx::fs::get_dir_size;
-/// 
+///
 /// let size = get_dir_size("/home/user/docs")?;
 /// println!("Размер директории: {} байт", size);
 /// ```
@@ -342,17 +330,17 @@ mod tests {
         let mut temp_file = NamedTempFile::new()?;
         let test_content = "тестовое содержимое";
         write!(temp_file, "{}", test_content)?;
-        
+
         let bfile = BFile::new(temp_file.path())?;
         assert_eq!(bfile.read()?, test_content);
         assert!(bfile.exists());
-        
+
         #[cfg(unix)]
         {
             bfile.set_permissions("644")?;
             assert_eq!(bfile.get_permissions()?, "644");
         }
-        
+
         Ok(())
     }
 }

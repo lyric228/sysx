@@ -5,7 +5,6 @@ use regex::Regex;
 
 use crate::Error;
 
-
 /// Статическая переменная, содержащая скомпилированное регулярное выражение для удаления квалификаторов namespace.
 /// Lazy гарантирует, что regex будет скомпилирован только один раз.
 static QUALIFIER_RE: Lazy<Regex> = Lazy::new(|| {
@@ -36,11 +35,7 @@ pub fn simplify_nonlist_type(type_str: &str) -> Result<String, Error> {
         });
     }
 
-    Ok(type_str
-        .split("::")
-        .last()
-        .unwrap_or("unknown")
-        .to_string())
+    Ok(type_str.split("::").last().unwrap_or("unknown").to_string())
 }
 
 /// Возвращает строку с именем типа переданного значения.
@@ -81,9 +76,9 @@ pub fn is_list_like(type_str: &str) -> bool {
     if type_str.contains('<') || type_str.contains('>') {
         return true;
     }
-    
+
     let trimmed = type_str.trim();
-    
+
     trimmed.starts_with("Vec<") || (trimmed.starts_with('[') && trimmed.ends_with(']'))
 }
 

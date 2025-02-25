@@ -1,8 +1,8 @@
 pub mod io {
-    pub mod log;
     pub mod cmd;
     pub mod env;
     pub mod fs;
+    pub mod log;
 }
 pub mod net {
     pub mod ipv4;
@@ -12,8 +12,8 @@ pub mod math {
     pub mod hex;
 }
 pub mod utils {
-    pub mod rand;
     pub mod deadlock;
+    pub mod rand;
 }
 pub mod types {
     pub mod error;
@@ -28,14 +28,14 @@ pub mod time {
 pub use types::error::*;
 
 pub mod dependencies {
+    pub use anyhow;
+    pub use chrono;
+    pub use colored;
+    pub use lazy_static;
+    pub use once_cell;
+    pub use parking_lot;
     pub use rand;
     pub use regex;
-    pub use chrono;
-    pub use anyhow;
-    pub use colored;
-    pub use thiserror;
-    pub use once_cell;
     pub use shell_words;
-    pub use lazy_static;
-    pub use parking_lot;
+    pub use thiserror;
 }

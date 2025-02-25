@@ -1,24 +1,17 @@
-use std::process::{
-    Command,
-    Output,
-    Stdio,
-};
+use std::process::{Command, Output, Stdio};
 
 use anyhow::Context;
 
-use crate::{
-    Result,
-    SysxError,
-};
+use crate::{Result, SysxError};
 
 /// Выполняет команду в «тихом» режиме, не выводя результат на экран.
-/// 
+///
 /// Принимает строку команды, разбирает её на программу и аргументы, затем выполняет команду.
 /// Если команда завершается успешно, возвращает стандартный вывод, иначе - стандартную ошибку.
-/// 
+///
 /// # Возвращаемое значение
 /// Кортеж, где первый элемент - строка результата выполнения (stdout или stderr), а второй - полный объект Output.
-/// 
+///
 /// # Пример
 /// ```
 /// // Передаём команду в виде строки
@@ -29,9 +22,9 @@ pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
     let trimmed = command_line.trim();
 
     if trimmed.is_empty() {
-        return Err(SysxError::AnyhowError(
-            anyhow::anyhow!("Empty command line"),
-        ));
+        return Err(SysxError::AnyhowError(anyhow::anyhow!(
+            "Empty command line"
+        )));
     }
 
     let mut parts = shell_words::split(trimmed)
@@ -62,12 +55,12 @@ pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
 }
 
 /// Выполняет команду и выводит результат в стандартный вывод.
-/// 
+///
 /// Вызывает silent_run для выполнения команды, затем печатает результат на экран.
-/// 
+///
 /// # Возвращаемое значение
 /// Кортеж, содержащий строку результата и объект Output.
-/// 
+///
 /// # Пример
 /// ```
 /// // Выполнение команды и печать результата в терминал
@@ -81,9 +74,9 @@ pub fn run(command: &str) -> Result<(String, Output)> {
 }
 
 /// Макрос для вызова функции silent_run с форматированием строки команды.
-/// 
+///
 /// Принимает набор аргументов для форматирования строки, вызывает silent_run с полученной командной строкой.
-/// 
+///
 /// # Пример
 /// ```
 /// // Форматирование команды с подстановкой переменной
@@ -100,9 +93,9 @@ macro_rules! silent_runf {
 pub use silent_runf;
 
 /// Макрос для вызова функции run с форматированием строки команды.
-/// 
+///
 /// Принимает набор аргументов, форматирует команду с помощью format! и вызывает run.
-/// 
+///
 /// # Пример
 /// ```
 /// // Форматирование команды и вывод результата
@@ -119,13 +112,13 @@ macro_rules! runf {
 pub use runf;
 
 /// Считывает строку из стандартного ввода в предоставленный буфер.
-/// 
+///
 /// Функция читает одну строку из stdin и записывает её в buffer.
 /// Если строка заканчивается символом новой строки, последний символ удаляется.
-/// 
+///
 /// # Возвращаемое значение
 /// Возвращает Ok(()) при успешном чтении или ошибку типа SysxError.
-/// 
+///
 /// # Пример
 /// ```
 /// let mut buf = String::new();
@@ -133,9 +126,9 @@ pub use runf;
 /// // Допустим, введена строка "test\n", buf станет равен "test"
 /// ```
 pub fn input_buf(buffer: &mut String) -> Result<()> {
-    std::io::stdin().read_line(buffer)
-        .map_err(|e| SysxError::AnyhowError(
-            anyhow::anyhow!("Failed to read line: {}", e)))
+    std::io::stdin()
+        .read_line(buffer)
+        .map_err(|e| SysxError::AnyhowError(anyhow::anyhow!("Failed to read line: {}", e)))
         .and_then(|_| {
             if buffer.ends_with('\n') {
                 buffer.pop();
@@ -145,12 +138,12 @@ pub fn input_buf(buffer: &mut String) -> Result<()> {
 }
 
 /// Считывает строку из стандартного ввода и возвращает её.
-/// 
+///
 /// Функция оборачивает input_buf, создавая новый buffer, считывая в него строку и возвращая значение.
-/// 
+///
 /// # Возвращаемое значение
 /// Возвращает Ok(String) с содержимым строки, или ошибку типа SysxError.
-/// 
+///
 /// # Пример
 /// ```
 /// let user_input = input().unwrap();

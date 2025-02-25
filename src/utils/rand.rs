@@ -1,23 +1,11 @@
-
 use std::cmp::Ordering;
 use std::sync::Arc;
 
-use rand::distr::{
-    uniform::SampleUniform,
-    Alphanumeric,
-    Uniform,
-};
-use rand::{
-    Rng,
-    rng,
-};
+use rand::distr::{Alphanumeric, Uniform, uniform::SampleUniform};
+use rand::{Rng, rng};
 // TODO: Check rand::prelude, maybe choto krutoe
 
-use crate::{
-    Error,
-    Result,
-};
-
+use crate::{Error, Result};
 
 /// Generates a random value within the inclusive range [min, max].
 ///
@@ -42,7 +30,7 @@ where
         None => {
             return Err(Error::InvalidSyntax(
                 "Invalid range comparison: cannot compare given values".into(),
-            ))
+            ));
         }
     };
 
@@ -141,7 +129,7 @@ where
         None => {
             return Err(Error::InvalidSyntax(
                 "Invalid range comparison: cannot compare given values".into(),
-            ))
+            ));
         }
     };
 
@@ -198,7 +186,6 @@ pub fn random_ratio(numerator: u32, denominator: u32) -> Result<bool> {
     let mut rng = rng();
     Ok(rng.random_ratio(numerator, denominator))
 }
-
 
 #[cfg(test)]
 mod tests {

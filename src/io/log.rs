@@ -1,15 +1,10 @@
-pub use colored::{
-    ColoredString,
-    Colorize,
-    Color,
-};
 pub use chrono::Local;
-
+pub use colored::{Color, ColoredString, Colorize};
 
 /// Logging level с привязанными стилями.
-/// 
+///
 /// Перечисление описывает уровни логирования с их визуальным представлением.
-/// 
+///
 /// # Пример
 /// ```
 /// let level = LogLevel::Info;
@@ -50,10 +45,10 @@ impl LogLevel {
 }
 
 /// Макрос для преобразования идентификатора лог-уровня в значение LogLevel.
-/// 
+///
 /// Принимает уровень логирования (например, INFO) и возвращает соответствующий элемент
 /// перечисления LogLevel.
-/// 
+///
 /// # Пример
 /// ```
 /// // Передаём идентификатор уровня
@@ -80,15 +75,15 @@ macro_rules! log_level {
 pub use log_level;
 
 /// Основной макрос логирования с упрощённым синтаксисом.
-/// 
+///
 /// Формирует лог-сообщение с указанным уровнем и текстом, а при наличии опционального
 /// контекста - также выводит его.
-/// 
+///
 /// # Пример
 /// ```
 /// // Пример вызова без контекста:
 /// log!(INFO, "System initialized");
-/// 
+///
 /// // Пример вызова с контекстом:
 /// log!(ERROR, "File not found"; "Path: /etc/config.yaml");
 /// ```
@@ -96,16 +91,16 @@ pub use log_level;
 macro_rules! log {
     ($level:ident, $($msg:tt)*) => {
         $crate::log_internal!(
-            $crate::log_level!($level), 
-            format!($($msg)*), 
+            $crate::log_level!($level),
+            format!($($msg)*),
             None
         )
     };
-    
+
     ($level:ident, $($msg:tt)*; $ctx:expr) => {
         $crate::log_internal!(
-            $crate::log_level!($level), 
-            format!($($msg)*), 
+            $crate::log_level!($level),
+            format!($($msg)*),
             Some($ctx.to_string())
         )
     };
@@ -113,10 +108,10 @@ macro_rules! log {
 pub use log;
 
 /// Внутренний макрос логирования, который осуществляет фактический вывод сообщения.
-/// 
+///
 /// Принимает уровень логирования ($level:expr), сформированное сообщение ($msg:expr),
 /// а также опциональный контекст ($ctx:expr). Выводит сообщение с временной меткой и стилизацией.
-/// 
+///
 /// # Пример
 /// ```
 /// log_internal!(LogLevel::Debug, format!("Debug info: {}", 42), None);
@@ -127,15 +122,11 @@ macro_rules! log_internal {
         let color = $level.style();
         let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
         let level_name = format!("{:?}", $level).to_uppercase();
-        
-        let styled_msg = $crate::style!(
-            format!("[{}] {}", level_name, $msg), 
-            color, 
-            bold
-        );
-        
+
+        let styled_msg = $crate::style!(format!("[{}] {}", level_name, $msg), color, bold);
+
         let ctx_str = $ctx.map(|c: String| format!("\n  ↳ {}", c.dimmed()));
-        
+
         println!(
             "{} {} {}",
             timestamp.to_string().dimmed(),
@@ -147,10 +138,10 @@ macro_rules! log_internal {
 pub use log_internal;
 
 /// Макрос для стилизации текста с помощью цепочки методов.
-/// 
+///
 /// Первым параметром принимает текст (или строку), вторым цвет или лог уровень, а третьим
 /// опционально набор стилей: например, bold, italic.
-/// 
+///
 /// # Примеры
 /// ```
 /// // Пример с лог уровнем:
@@ -177,9 +168,9 @@ macro_rules! style {
 pub use style;
 
 /// Форматирует временную метку с использованием текущего времени.
-/// 
+///
 /// Возвращает строку с временной меткой, стилизованную в приглушённом цвете.
-/// 
+///
 /// # Пример
 /// ```
 /// let timestamp = format_timestamp();

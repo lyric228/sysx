@@ -1,14 +1,8 @@
-use crate::{
-    Result,
-    SysxError,
-};
-
+use crate::{Result, SysxError};
 
 /// Возвращает строку, содержащую только hex-символы из входной строки.
 pub fn clean_hex(input: &str) -> String {
-    input.chars()
-        .filter(|c| c.is_ascii_hexdigit())
-        .collect()
+    input.chars().filter(|c| c.is_ascii_hexdigit()).collect()
 }
 // TODO: Error enum for hex and bin and other fixes and num mod
 /// Преобразует hex-строку в UTF-8 строку.
@@ -17,7 +11,9 @@ pub fn hex_to_str(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
 
     if cleaned.len() % 2 != 0 {
-        return Err(SysxError::InvalidSyntax("Hex string must have even length".into()));
+        return Err(SysxError::InvalidSyntax(
+            "Hex string must have even length".into(),
+        ));
     }
 
     let bytes = (0..cleaned.len())
@@ -28,8 +24,7 @@ pub fn hex_to_str(hex: &str) -> Result<String> {
         })
         .collect::<std::result::Result<Vec<u8>, _>>()
         .map_err(SysxError::ParseIntError)?;
-    String::from_utf8(bytes)
-        .map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
+    String::from_utf8(bytes).map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
 }
 
 /// Преобразует строку в шестнадцатеричный формат (байт за байтом, разделённые пробелами).
@@ -43,8 +38,10 @@ pub fn str_to_hex(text: &str) -> String {
 
 /// Проверяет, что строка содержит только hex-символы и пробельные символы.
 pub fn is_valid_hex(hex: &str) -> bool {
-    !hex.is_empty() && hex.chars()
-        .all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
+    !hex.is_empty()
+        && hex
+            .chars()
+            .all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
 }
 
 /// Проверяет hex-строку без пробелов на чётное количество символов.
@@ -57,7 +54,9 @@ pub fn is_valid_hex_strict(hex: &str) -> bool {
 pub fn fmt_hex(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
     if cleaned.is_empty() || cleaned.len() % 2 != 0 {
-        return Err(SysxError::InvalidSyntax("Hexadecimal string length must be a multiple of 2".into()));
+        return Err(SysxError::InvalidSyntax(
+            "Hexadecimal string length must be a multiple of 2".into(),
+        ));
     }
     let formatted = cleaned
         .chars()
@@ -73,7 +72,9 @@ pub fn fmt_hex(hex: &str) -> Result<String> {
 pub fn hex_to_bytes(hex: &str) -> Result<Vec<u8>> {
     let cleaned = clean_hex(hex);
     if cleaned.len() % 2 != 0 {
-        return Err(SysxError::InvalidSyntax("Hex string must have even length".into()));
+        return Err(SysxError::InvalidSyntax(
+            "Hex string must have even length".into(),
+        ));
     }
     (0..cleaned.len())
         .step_by(2)

@@ -1,9 +1,8 @@
-pub use std::time::Duration;
 use std::str::FromStr;
 use std::thread;
+pub use std::time::Duration;
 
 use thiserror::Error;
-
 
 /// Спит заданное время, поддерживая различные входные типы и единицы измерения.
 ///
@@ -68,18 +67,18 @@ impl SleepTime {
     /// Возвращает Duration, соответствующий значению SleepTime.
     ///
     /// # Пример
-    /// ``` 
+    /// ```
     /// let t = SleepTime { seconds: 1.5 };
     /// let d = t.to_duration();
     /// // d будет эквивалентно 1.5 секундам
     /// ```
     pub fn to_duration(self) -> Duration {
         assert!(self.seconds >= 0.0, "Время не может быть отрицательным");
-        
+
         // Вычисляем целые секунды и наносекунды
         let secs = self.seconds.trunc() as u64;
         let nanos = (self.seconds.fract() * 1_000_000_000.0).round() as u32;
-        
+
         // Корректировка при переполнении наносекунд
         let (secs, nanos) = if nanos >= 1_000_000_000 {
             (secs.saturating_add(1), 0)
@@ -100,7 +99,9 @@ impl From<u64> for SleepTime {
     /// let t: SleepTime = 2000u64.into();
     /// ```
     fn from(ms: u64) -> Self {
-        SleepTime { seconds: ms as f64 / 1000.0 }
+        SleepTime {
+            seconds: ms as f64 / 1000.0,
+        }
     }
 }
 
@@ -114,7 +115,9 @@ impl From<Duration> for SleepTime {
     /// // t.seconds будет равно 5.0
     /// ```
     fn from(d: Duration) -> Self {
-        SleepTime { seconds: d.as_secs_f64() }
+        SleepTime {
+            seconds: d.as_secs_f64(),
+        }
     }
 }
 
@@ -140,7 +143,8 @@ impl From<&str> for SleepTime {
     /// // t.seconds будет равно 2.0
     /// ```
     fn from(s: &str) -> Self {
-        s.parse().unwrap_or_else(|e| panic!("Не удалось распарсить строку времени: {}", e))
+        s.parse()
+            .unwrap_or_else(|e| panic!("Не удалось распарсить строку времени: {}", e))
     }
 }
 
@@ -163,10 +167,11 @@ impl FromStr for SleepTime {
         let s = s.trim().to_lowercase();
         let (num_part, unit) = s.split_at(
             s.find(|c: char| !c.is_numeric() && c != '.')
-             .unwrap_or_else(|| s.len())
+                .unwrap_or_else(|| s.len()),
         );
 
-        let num: f64 = num_part.parse()
+        let num: f64 = num_part
+            .parse()
             .map_err(|_| SleepError::InvalidFormat(s.clone()))?;
 
         let multiplier = match unit {
@@ -183,7 +188,7 @@ impl FromStr for SleepTime {
         }
 
         Ok(SleepTime {
-            seconds: num * multiplier
+            seconds: num * multiplier,
         })
     }
 }
@@ -206,7 +211,7 @@ pub fn safe_sleep<T: Into<SleepTime>>(time: T) -> Result<(), SleepError> {
         t if t.seconds < 0.0 => return Err(SleepError::NegativeTime),
         t => t,
     };
-    
+
     thread::sleep(sleep_time.to_duration());
     Ok(())
 }

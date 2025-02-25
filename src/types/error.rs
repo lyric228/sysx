@@ -1,8 +1,7 @@
-use rand::distr::uniform::Error as RandUniformError;
 use anyhow::Error as AnyhowError;
+use rand::distr::uniform::Error as RandUniformError;
 use regex::Error as RegexError;
 use thiserror::Error;
-
 
 /// Main error type for the sysx library.
 #[derive(Debug, Error)]
@@ -24,7 +23,10 @@ pub enum SysxError {
     RegexFailure(#[from] RegexError),
 
     /// Type validation mismatch error.
-    #[error("Type validation error: expected {expected}, found {actual}{:?}", context)]
+    #[error(
+        "Type validation error: expected {expected}, found {actual}{:?}",
+        context
+    )]
     ValidationError {
         /// Expected type description.
         expected: &'static str,
