@@ -81,10 +81,7 @@ pub use log_level;
 ///
 /// # Пример
 /// ```
-/// // Пример вызова без контекста:
 /// log!(INFO, "System initialized");
-///
-/// // Пример вызова с контекстом:
 /// log!(ERROR, "File not found"; "Path: /etc/config.yaml");
 /// ```
 #[macro_export]
@@ -122,9 +119,7 @@ macro_rules! log_internal {
         let color = $level.style();
         let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
         let level_name = format!("{:?}", $level).to_uppercase();
-
         let styled_msg = $crate::style!(format!("[{}] {}", level_name, $msg), color, bold);
-
         let ctx_str = $ctx.map(|c: String| format!("\n  ↳ {}", c.dimmed()));
 
         println!(
@@ -158,9 +153,11 @@ macro_rules! style {
         let color = $level.style();
         $text.color(color).bold()
     }};
+
     ($text:expr, $color:expr) => {
         $text.color($color)
     };
+
     ($text:expr, $color:expr, $($style:ident)+) => {
         $text.color($color)$(.$style())+
     };

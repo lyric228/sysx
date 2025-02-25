@@ -8,6 +8,9 @@ pub mod net {
     pub mod ipv4;
 }
 pub mod math {
+    pub mod math;
+    pub use math::*;
+
     pub mod bin;
     pub mod hex;
 }
