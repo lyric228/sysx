@@ -15,7 +15,6 @@ pub mod math {
     pub mod hex;
 }
 pub mod utils {
-    pub mod deadlock;
     pub mod rand;
 }
 pub mod types {
