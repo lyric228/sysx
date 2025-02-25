@@ -67,21 +67,3 @@ pub fn fmt_hex(hex: &str) -> Result<String> {
         .join(" ");
     Ok(formatted)
 }
-
-/// Преобразует hex-строку непосредственно в вектор байтов.
-pub fn hex_to_bytes(hex: &str) -> Result<Vec<u8>> {
-    let cleaned = clean_hex(hex);
-    if cleaned.len() % 2 != 0 {
-        return Err(SysxError::InvalidSyntax(
-            "Hex string must have even length".into(),
-        ));
-    }
-    (0..cleaned.len())
-        .step_by(2)
-        .map(|i| {
-            let byte_str = &cleaned[i..i + 2];
-            u8::from_str_radix(byte_str, 16)
-        })
-        .collect::<std::result::Result<Vec<u8>, _>>()
-        .map_err(SysxError::ParseIntError)
-}
