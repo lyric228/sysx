@@ -6,7 +6,7 @@ use std::process::{
 
 use anyhow::Context;
 
-pub use crate::{
+use crate::{
     Result,
     SysxError,
 };

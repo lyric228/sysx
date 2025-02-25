@@ -4,99 +4,61 @@ use crate::{
 };
 
 
-/// Преобразует строку из шестнадцатеричных значений в обычную строку UTF-8.
-/// 
-/// # Пример
-/// ```
-/// let hex = "48 65 6C 6C 6F";
-/// let s = hex_to_str(hex).unwrap();
-/// assert_eq!(s, "Hello");
-/// ```
+/// Возвращает строку, содержащую только hex-символы из входной строки.
+pub fn clean_hex(input: &str) -> String {
+    input.chars()
+        .filter(|c| c.is_ascii_hexdigit())
+        .collect()
+}
+// TODO: Error enum for hex and bin and other fixes and num mod
+/// Преобразует hex-строку в UTF-8 строку.
+/// Поддерживаются строки с разделителями или без них.
 pub fn hex_to_str(hex: &str) -> Result<String> {
-    let bytes = hex
-        .split_whitespace()
-        .map(|s| u8::from_str_radix(s, 16))
-        .collect::<std::result::Result<Vec<u8>, _>>()
-        .map_err(|e| SysxError::ParseIntError(e))?;
+    let cleaned = clean_hex(hex);
 
+    if cleaned.len() % 2 != 0 {
+        return Err(SysxError::InvalidSyntax("Hex string must have even length".into()));
+    }
+
+    let bytes = (0..cleaned.len())
+        .step_by(2)
+        .map(|i| {
+            let byte_str = &cleaned[i..i + 2];
+            u8::from_str_radix(byte_str, 16)
+        })
+        .collect::<std::result::Result<Vec<u8>, _>>()
+        .map_err(SysxError::ParseIntError)?;
     String::from_utf8(bytes)
-        .map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8 sequence: {}", e)))
+        .map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
 }
 
-/// Преобразует строку в шестнадцатеричное представление.
-/// 
-/// # Пример
-/// ```
-/// let text = "Hello";
-/// let hex = str_to_hex(text);
-/// assert_eq!(hex, "48 65 6C 6C 6F");
-/// ```
+/// Преобразует строку в шестнадцатеричный формат (байт за байтом, разделённые пробелами).
 pub fn str_to_hex(text: &str) -> String {
     text.as_bytes()
         .iter()
         .map(|b| format!("{:02X}", b))
-        .collect::<Vec<String>>()
+        .collect::<Vec<_>>()
         .join(" ")
 }
 
-/// Проверяет, содержит ли строка только шестнадцатеричные символы и пробельные символы.
-/// 
-/// # Пример
-/// ```
-/// assert!(is_valid_hex("48 65 6C 6C 6F"));
-/// assert!(!is_valid_hex("48 65 6C GG"));
-/// ```
+/// Проверяет, что строка содержит только hex-символы и пробельные символы.
 pub fn is_valid_hex(hex: &str) -> bool {
-    !hex.is_empty() && hex
-        .chars()
+    !hex.is_empty() && hex.chars()
         .all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
 }
 
-/// Строгая проверка шестнадцатеричной строки.
-/// 
-/// # Пример
-/// ```
-/// assert!(is_valid_hex_strict("48656C6C6F"));
-/// assert!(!is_valid_hex_strict("48656C6C6")); // нечётное количество символов
-/// ```
+/// Проверяет hex-строку без пробелов на чётное количество символов.
 pub fn is_valid_hex_strict(hex: &str) -> bool {
-    if hex.is_empty() {
-        return false;
-    }
-    
-    let trimmed: String = hex
-        .chars()
-        .filter(|c| !c.is_whitespace())
-        .collect();
-
-    trimmed.len() % 2 == 0 && trimmed.chars().all(|c| c.is_ascii_hexdigit())
+    let trimmed: String = hex.chars().filter(|c| !c.is_whitespace()).collect();
+    !trimmed.is_empty() && trimmed.len() % 2 == 0 && trimmed.chars().all(|c| c.is_ascii_hexdigit())
 }
 
-/// Форматирует шестнадцатеричную строку, добавляя пробелы каждые 2 символа и удаляя некорректные символы.
-/// 
-/// # Пример
-/// ```
-/// let dirty = "48xyz65...6C6C6F";
-/// let formatted = fmt_hex(dirty).unwrap();
-/// assert_eq!(formatted, "48 65 6C 6C 6F");
-/// ```
-///
-/// Если длина очищенной строки не чётная, возвращается ошибка:
-/// ```
-/// assert!(fmt_hex("48A").is_err());
-/// ```
+/// Форматирует строку, оставляя только hex-символы и разделяя байты пробелами.
 pub fn fmt_hex(hex: &str) -> Result<String> {
-    let cleaned: String = hex
-        .chars()
-        .filter(|c| c.is_ascii_hexdigit())
-        .collect();
-
+    let cleaned = clean_hex(hex);
     if cleaned.is_empty() || cleaned.len() % 2 != 0 {
-        return Err(SysxError::InvalidSyntax(
-            "Hexadecimal string length must be multiple of 2".to_string()
-        ));
+        return Err(SysxError::InvalidSyntax("Hexadecimal string length must be a multiple of 2".into()));
     }
-
     let formatted = cleaned
         .chars()
         .collect::<Vec<char>>()
@@ -104,6 +66,21 @@ pub fn fmt_hex(hex: &str) -> Result<String> {
         .map(|chunk| chunk.iter().collect::<String>())
         .collect::<Vec<String>>()
         .join(" ");
-
     Ok(formatted)
+}
+
+/// Преобразует hex-строку непосредственно в вектор байтов.
+pub fn hex_to_bytes(hex: &str) -> Result<Vec<u8>> {
+    let cleaned = clean_hex(hex);
+    if cleaned.len() % 2 != 0 {
+        return Err(SysxError::InvalidSyntax("Hex string must have even length".into()));
+    }
+    (0..cleaned.len())
+        .step_by(2)
+        .map(|i| {
+            let byte_str = &cleaned[i..i + 2];
+            u8::from_str_radix(byte_str, 16)
+        })
+        .collect::<std::result::Result<Vec<u8>, _>>()
+        .map_err(SysxError::ParseIntError)
 }

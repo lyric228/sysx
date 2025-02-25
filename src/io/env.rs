@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 use parking_lot::Mutex;
 
-pub use crate::{
+use crate::{
     Result,
     SysxError,
 };
@@ -36,7 +36,8 @@ pub fn set_env(key: &str, value: &str) -> Result<()> {
         std::env::set_var(key, value);
     }
     // Сохраняем переменную в кэше.
-    ENV_VARS.lock().insert(key.to_string(), value.to_string());
+    ENV_VARS.lock()
+        .insert(key.to_string(), value.to_string());
     Ok(())
 }
 
@@ -55,7 +56,13 @@ pub fn set_env(key: &str, value: &str) -> Result<()> {
 /// ```
 pub fn get_env(key: &str) -> Result<String> {
     std::env::var(key)
-        .or_else(|_| ENV_VARS.lock().get(key).cloned())
+        .or_else(|_| {
+            ENV_VARS.lock()
+            .get(key)
+            .cloned()
+            .ok_or(SysxError::EnvVarNotFound(key.to_string()))
+        }
+    )
 }
 
 /// Возвращает копию всех переменных окружения из глобального кэша.

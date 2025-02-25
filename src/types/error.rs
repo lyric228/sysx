@@ -15,6 +15,10 @@ pub enum SysxError {
     #[error("Nested generics not supported in type: {0}")]
     NestedGenerics(String),
 
+    /// Environment variable not found error.
+    #[error("Environment variable not found: {0}")]
+    EnvVarNotFound(String),
+
     /// Regular expression compilation failure.
     #[error("Regex compilation failed: {0}")]
     RegexFailure(#[from] RegexError),
@@ -66,7 +70,7 @@ pub enum SysxError {
     #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
 
-    /// Path strip prefix error
+    /// Path strip prefix error.
     #[error("Path strip prefix error: {0}")]
     StripPrefixError(#[from] std::path::StripPrefixError),
 }
