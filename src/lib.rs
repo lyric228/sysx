@@ -35,7 +35,6 @@ pub mod dependencies {
     pub use colored;
     pub use lazy_static;
     pub use once_cell;
-    pub use parking_lot;
     pub use rand;
     pub use regex;
     pub use shell_words;

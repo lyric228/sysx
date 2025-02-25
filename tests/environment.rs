@@ -7,7 +7,7 @@ fn test_environment_manipulation() {
     assert_eq!(get_env("TEST_KEY").unwrap(), "test_value");
 
     // get_envs
-    let envs = get_envs();
+    let envs = get_envs().unwrap();
     assert!(envs.contains_key("TEST_KEY"));
 }
 

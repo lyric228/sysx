@@ -75,6 +75,10 @@ pub enum SysxError {
     /// Path strip prefix error.
     #[error("Path strip prefix error: {0}")]
     StripPrefixError(#[from] std::path::StripPrefixError),
+
+    /// Mutex poison error.
+    #[error("Mutex poisoned: {0}")]
+    MutexPoison(String),
 }
 
 /// Errors related to time-based operations (e.g., sleep).
@@ -91,6 +95,14 @@ pub enum TimeError {
     /// Negative time duration specified.
     #[error("Negative time duration specified")]
     NegativeDuration,
+}
+
+impl From<std::sync::PoisonError<std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>>> 
+    for SysxError 
+{
+    fn from(err: std::sync::PoisonError<std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>>) -> Self {
+        SysxError::MutexPoison(format!("Mutex consistency error: {}", err))
+    }
 }
 
 /// Alias for the result type returned by sysx library functions.
