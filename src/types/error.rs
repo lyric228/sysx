@@ -79,6 +79,10 @@ pub enum SysxError {
     /// Mutex poison error.
     #[error("Mutex poisoned: {0}")]
     MutexPoison(String),
+
+    /// Serialization error.
+    #[error("Serialization error: {0}")]
+    SerializationError(String),
 }
 
 /// Errors related to time-based operations (e.g., sleep).
@@ -97,10 +101,18 @@ pub enum TimeError {
     NegativeDuration,
 }
 
-impl From<std::sync::PoisonError<std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>>> 
-    for SysxError 
+impl
+    From<
+        std::sync::PoisonError<
+            std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>,
+        >,
+    > for SysxError
 {
-    fn from(err: std::sync::PoisonError<std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>>) -> Self {
+    fn from(
+        err: std::sync::PoisonError<
+            std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>,
+        >,
+    ) -> Self {
         SysxError::MutexPoison(format!("Mutex consistency error: {}", err))
     }
 }

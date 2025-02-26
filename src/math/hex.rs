@@ -4,7 +4,7 @@ use crate::{Result, SysxError};
 pub fn clean_hex(input: &str) -> String {
     input.chars().filter(|c| c.is_ascii_hexdigit()).collect()
 }
-// TODO: Error enum for hex and bin and other fixes and num mod
+
 /// Преобразует hex-строку в UTF-8 строку.
 /// Поддерживаются строки с разделителями или без них.
 pub fn hex_to_str(hex: &str) -> Result<String> {
