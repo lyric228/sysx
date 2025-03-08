@@ -6,6 +6,10 @@ edition = "2024"
 [lib]
 doctest = false
 
+[features]
+default = []
+unstable = []
+
 [dependencies]
 rand = "0.9.0"
 chrono = "0.4.40"

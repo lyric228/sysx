@@ -8,9 +8,34 @@ pub mod net {
     pub mod ipv4;
 }
 pub mod math {
+    pub mod types {
+        pub mod float {
+            #[cfg(feature = "unstable")]
+            pub mod f16;
+            #[cfg(feature = "unstable")]
+            pub mod f128;
+
+            pub mod f32;
+            pub mod f64;
+        }
+
+        #[cfg(feature = "unstable")]
+        pub use float::f16;
+        #[cfg(feature = "unstable")]
+        pub use float::f128;
+        pub use float::f32;
+        pub use float::f64;
+    }
+
+    #[cfg(feature = "unstable")]
+    pub use types::f16;
+    #[cfg(feature = "unstable")]
+    pub use types::f128;
+    pub use types::f32;
+    pub use types::f64;
+
     pub mod math;
     pub use math::*;
-
     pub mod bin;
     pub mod hex;
 }
