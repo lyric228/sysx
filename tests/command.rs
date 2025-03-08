@@ -6,8 +6,8 @@ fn test_command_execution() {
     let (output, _) = silent_run("echo test").unwrap();
     assert_eq!(output.trim(), "test");
 
-    let result = silent_run("nonexistentcommand");
-    assert!(matches!(result.unwrap_err(), SysxError::AnyhowError(_)));
+    let res = silent_run("nonexistentcommand");
+    assert!(matches!(res.unwrap_err(), SysxError::AnyhowError(_)));
 
     // run
     let (output, _) = run("echo test").unwrap();

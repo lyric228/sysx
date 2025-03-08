@@ -105,7 +105,7 @@ pub fn simplify_type<'a>(type_str: &'a str) -> Result<String, Error> {
     }
 
     let mut current_token = String::new();
-    let mut result = String::new();
+    let mut res = String::new();
     let mut inside_angle_brackets: i32 = 0;
 
     for c in type_str.chars() {
@@ -120,10 +120,10 @@ pub fn simplify_type<'a>(type_str: &'a str) -> Result<String, Error> {
             }
             ',' if inside_angle_brackets == 0 => {
                 let simplified_token = QUALIFIER_RE.replace_all(&current_token, "");
-                if !result.is_empty() {
-                    result.push_str(", ");
+                if !res.is_empty() {
+                    res.push_str(", ");
                 }
-                result.push_str(&simplified_token);
+                res.push_str(&simplified_token);
                 current_token.clear();
             }
             _ => {
@@ -134,11 +134,11 @@ pub fn simplify_type<'a>(type_str: &'a str) -> Result<String, Error> {
 
     if !current_token.is_empty() {
         let simplified_token = QUALIFIER_RE.replace_all(&current_token, "");
-        if !result.is_empty() {
-            result.push_str(", ");
+        if !res.is_empty() {
+            res.push_str(", ");
         }
-        result.push_str(&simplified_token);
+        res.push_str(&simplified_token);
     }
 
-    Ok(result.trim().to_string())
+    Ok(res.trim().to_string())
 }

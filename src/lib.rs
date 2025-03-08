@@ -29,7 +29,7 @@ pub mod time {
 
 pub use types::error::*;
 
-pub mod dependencies {
+pub mod deps {
     pub use anyhow;
     pub use chrono;
     pub use colored;

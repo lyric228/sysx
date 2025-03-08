@@ -43,13 +43,13 @@ pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
         .with_context(|| format!("Failed to execute command '{}'", command_line))
         .map_err(|e| SysxError::AnyhowError(e))?;
 
-    let result = if output.status.success() {
+    let res = if output.status.success() {
         output.stdout.clone()
     } else {
         output.stderr.clone()
     };
 
-    let output_str = String::from_utf8(result).map_err(|e| SysxError::FromUtf8Error(e))?;
+    let output_str = String::from_utf8(res).map_err(|e| SysxError::FromUtf8Error(e))?;
 
     Ok((output_str, output))
 }
@@ -80,7 +80,7 @@ pub fn run(command: &str) -> Result<(String, Output)> {
 /// # Пример
 /// ```
 /// // Форматирование команды с подстановкой переменной
-/// let result = silent_runf!("echo {}", "Hello");
+/// let res = silent_runf!("echo {}", "Hello");
 /// // Выполнится команда "echo Hello", вернётся результат выполнения
 /// ```
 #[macro_export]
@@ -99,7 +99,7 @@ pub use silent_runf;
 /// # Пример
 /// ```
 /// // Форматирование команды и вывод результата
-/// let result = runf!("echo {}", "World");
+/// let res = runf!("echo {}", "World");
 /// // Выполнится команда "echo World" и результат будет выведен на экран.
 /// ```
 #[macro_export]
