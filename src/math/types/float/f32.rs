@@ -12,9 +12,15 @@ pub trait F32Ext {
 impl F32Ext for f32 {
     fn ctan(&self) -> (f32, f32) {
         let x = *self;
-        let sin_2x = (2.0 * x).sin();
-        let cos_2x = (2.0 * x).cos();
-        let denominator = cos_2x;
+
+        if x == 0.0 {
+            return (0.0, 0.0);
+        }
+
+        let x2 = 2.0 * x;
+        let sin_2x = x2.sin();
+        let cos_2x = x2.cos();
+        let denominator = cos_2x + 1.0;
 
         if denominator.abs() < f32::EPSILON {
             return (f32::INFINITY * sin_2x.signum(), 0.0);
@@ -25,9 +31,16 @@ impl F32Ext for f32 {
 
     fn ctanh(&self) -> (f32, f32) {
         let x = *self;
-        let sinh_2x = (2.0 * x).sinh();
-        let cosh_2x = (2.0 * x).cosh();
-        let denominator = cosh_2x;
+
+        if x == 0.0 {
+            return (0.0, 0.0);
+        }
+
+        let x2 = 2.0 * x;
+        let sinh_2x = x2.sinh();
+        let cosh_2x = x2.cosh();
+
+        let denominator = cosh_2x + 1.0;
 
         if denominator.abs() < f32::EPSILON {
             return (f32::INFINITY * sinh_2x.signum(), 0.0);
