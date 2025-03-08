@@ -65,7 +65,6 @@ mod tests {
         assert_eq!(real, 0.0);
         assert_eq!(imag, 0.0);
 
-        // Проверка обработки особых случаев
         let pi_half = std::f32::consts::PI / 2.0;
         let (real, imag) = pi_half.ctan();
         assert!(real.is_infinite());
@@ -84,7 +83,6 @@ mod tests {
         assert_eq!(real, 0.0);
         assert_eq!(imag, 0.0);
 
-        // Проверка обработки больших значений
         let large_value = 20.0_f32;
         let (real, imag) = large_value.ctanh();
         assert!((real - 1.0).abs() < 1e-6);
