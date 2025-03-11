@@ -4,15 +4,15 @@ pub use std::time::Duration;
 
 use thiserror::Error;
 
-/// Спит заданное время, поддерживая различные входные типы и единицы измерения.
+/// Выполняет приостановку выполнения текущего потока на указанное время.
 ///
-/// Функция принимает аргумент, который может быть:
-/// - u64 (миллисекунды)
-/// - Duration (прямо)
-/// - &str с суффиксом единицы (например, "5s", "100ms", "1.5h")
-/// - f64 (секунды)
+/// Функция принимает различные форматы времени:
+/// - u64: интерпретируется как миллисекунды
+/// - f64: интерпретируется как секунды
+/// - &str: строка с указанием единиц измерения, например "500ms" или "2s"
+/// - Duration: стандартный тип Duration
 ///
-/// После преобразования входного значения в Duration, функция вызывает thread::sleep.
+/// Внутри вызывает thread::sleep.
 ///
 /// # Пример
 /// ```
@@ -62,6 +62,7 @@ impl SleepTime {
     /// Преобразует SleepTime в Duration с защитой от переполнения.
     ///
     /// Происходит разделение секунд и наносекунд, с корректировкой при переполнении наносекунд.
+    /// Отрицательные значения времени преобразуются в положительные.
     ///
     /// # Возвращаемое значение
     /// Возвращает Duration, соответствующий значению SleepTime.
@@ -73,11 +74,11 @@ impl SleepTime {
     /// // d будет эквивалентно 1.5 секундам
     /// ```
     pub fn to_duration(self) -> Duration {
-        assert!(self.seconds >= 0.0, "Время не может быть отрицательным");
-
+        // Используем абсолютное значение вместо assert
+        let seconds = self.seconds.abs();
         // Вычисляем целые секунды и наносекунды
-        let secs = self.seconds.trunc() as u64;
-        let nanos = (self.seconds.fract() * 1_000_000_000.0).round() as u32;
+        let secs = seconds.trunc() as u64;
+        let nanos = (seconds.fract() * 1_000_000_000.0).round() as u32;
 
         // Корректировка при переполнении наносекунд
         let (secs, nanos) = if nanos >= 1_000_000_000 {
@@ -143,8 +144,9 @@ impl From<&str> for SleepTime {
     /// // t.seconds будет равно 2.0
     /// ```
     fn from(s: &str) -> Self {
+        // Сохраняем поведение, но используем более безопасное сообщение об ошибке
         s.parse()
-            .unwrap_or_else(|e| panic!("Не удалось распарсить строку времени: {}", e))
+            .unwrap_or_else(|_| panic!("Не удалось преобразовать строку '{}' в SleepTime", s))
     }
 }
 
@@ -172,7 +174,7 @@ impl FromStr for SleepTime {
 
         let num: f64 = num_part
             .parse()
-            .map_err(|_| SleepError::InvalidFormat(s.clone()))?;
+            .map_err(|_| SleepError::InvalidFormat(s.to_string()))?;
 
         let multiplier = match unit {
             "ns" => 1e-9,
@@ -180,9 +182,10 @@ impl FromStr for SleepTime {
             "m" => 60.0,
             "h" => 3600.0,
             "s" | "" => 1.0,
-            _ => return Err(SleepError::InvalidFormat(s.clone())),
+            _ => return Err(SleepError::InvalidFormat(s.to_string())),
         };
 
+        // Сохраняем проверку на отрицательные значения для API безопасности
         if num < 0.0 {
             return Err(SleepError::NegativeTime);
         }
@@ -207,10 +210,11 @@ impl FromStr for SleepTime {
 /// safe_sleep("2s").unwrap();
 /// ```
 pub fn safe_sleep<T: Into<SleepTime>>(time: T) -> Result<(), SleepError> {
-    let sleep_time = match time.into() {
-        t if t.seconds < 0.0 => return Err(SleepError::NegativeTime),
-        t => t,
-    };
+    let sleep_time = time.into();
+
+    if sleep_time.seconds < 0.0 {
+        return Err(SleepError::NegativeTime);
+    }
 
     thread::sleep(sleep_time.to_duration());
     Ok(())
