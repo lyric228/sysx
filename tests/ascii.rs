@@ -1,57 +1,34 @@
-//! Integration tests for the ASCII art module
-
 use std::fs;
-use std::io::Write;
 use std::path::PathBuf;
 
-// Импортируем функции и константы из модуля ascii
 use sysx::utils::ascii::{
-    CHAR_SET_DETAILED, CHAR_SET_MEDIUM, CHAR_SET_SIMPLE, image_to_ascii, image_to_ascii_with_chars,
-    pixel_brightness,
+    CHAR_SET_DETAILED, CHAR_SET_MEDIUM, CHAR_SET_SIMPLE, image_to_ascii, image_to_ascii_chars,
+    image_to_ascii_configurable, pixel_brightness, AsciiArtConfig,
 };
 
-use image::{Rgb, Rgba};
-
-// Вспомогательная функция для создания тестового изображения
+use image::{Rgb, Rgba, imageops::FilterType};
 fn create_test_image(path: &PathBuf) {
-    // Создаем тестовую директорию, если её нет
     let parent = path.parent().unwrap();
     fs::create_dir_all(parent).expect("Failed to create test directory");
-
-    // Создаем небольшое тестовое изображение (10x10 пикселей)
     let mut img = image::RgbImage::new(10, 10);
-
-    // Заполняем его градиентом от черного к белому
     for y in 0..10 {
         for x in 0..10 {
             let brightness = (x + y) as u8 * 12;
             img.put_pixel(x, y, Rgb([brightness, brightness, brightness]));
         }
     }
-
-    // Сохраняем изображение
     img.save(path).expect("Failed to save test image");
 }
 
 #[test]
 fn test_pixel_brightness() {
-    // Тестируем расчет яркости пикселей
-
-    // Черный пиксель
     let black_pixel = Rgb([0u8, 0u8, 0u8]);
     assert!(pixel_brightness(black_pixel) < 0.001);
-
-    // Белый пиксель
     let white_pixel = Rgb([255u8, 255u8, 255u8]);
     assert!(pixel_brightness(white_pixel) > 0.999);
-
-    // Красный пиксель (должен быть темнее зеленого из-за взвешенного расчета)
     let red_pixel = Rgb([255u8, 0u8, 0u8]);
     let green_pixel = Rgb([0u8, 255u8, 0u8]);
-
     assert!(pixel_brightness(red_pixel) < pixel_brightness(green_pixel));
-
-    // Проверка пикселя с альфа-каналом
     let rgba_pixel = Rgba([128u8, 128u8, 128u8, 255u8]);
     let brightness = pixel_brightness(rgba_pixel);
     assert!(
@@ -62,77 +39,44 @@ fn test_pixel_brightness() {
 }
 
 #[test]
-fn test_image_to_ascii_with_default_charset() {
-    // Создаем путь к тестовому изображению
+fn test_image_to_ascii_default_charset() {
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
-    let test_image = test_dir.join("test_gradient.png");
-
-    // Создаем тестовое изображение
+    let test_image = test_dir.join("test_gradient_default_charset.png");
     create_test_image(&test_image);
 
-    // Преобразуем изображение в ASCII с разными наборами символов
     let detailed = image_to_ascii(&test_image, 20, 10, CHAR_SET_DETAILED).unwrap();
     let medium = image_to_ascii(&test_image, 20, 10, CHAR_SET_MEDIUM).unwrap();
     let simple = image_to_ascii(&test_image, 20, 10, CHAR_SET_SIMPLE).unwrap();
 
-    // Проверяем, что результат не пуст
-    assert!(
-        !detailed.is_empty(),
-        "ASCII art with detailed charset should not be empty"
-    );
-    assert!(
-        !medium.is_empty(),
-        "ASCII art with medium charset should not be empty"
-    );
-    assert!(
-        !simple.is_empty(),
-        "ASCII art with simple charset should not be empty"
-    );
+    assert!(!detailed.is_empty(), "Detailed charset output should not be empty");
+    assert!(!medium.is_empty(), "Medium charset output should not be empty");
+    assert!(!simple.is_empty(), "Simple charset output should not be empty");
 
-    // Проверяем, что результат содержит символы новой строки (т.е. он многострочный)
-    assert!(detailed.contains('\n'), "ASCII art should contain newlines");
-
-    // Подсчитываем количество строк и символов в строке
+    assert!(detailed.contains('\n'), "Output should contain newlines");
     let lines: Vec<&str> = detailed.lines().collect();
-    assert!(lines.len() <= 10, "ASCII art should have at most 10 lines");
+    assert!(lines.len() <= 10, "Output should have at most 10 lines");
 
     if let Some(first_line) = lines.first() {
         assert!(
             first_line.chars().count() <= 20,
-            "ASCII art line should have at most 20 characters"
+            "Line should have at most 20 characters"
         );
     }
 
-    // Сохраняем результаты для визуальной проверки (опционально)
     let output_dir = test_dir.join("output");
     fs::create_dir_all(&output_dir).expect("Failed to create output directory");
 
-    let mut detailed_file = fs::File::create(output_dir.join("detailed.txt")).unwrap();
-    detailed_file.write_all(detailed.as_bytes()).unwrap();
-
-    let mut medium_file = fs::File::create(output_dir.join("medium.txt")).unwrap();
-    medium_file.write_all(medium.as_bytes()).unwrap();
-
-    let mut simple_file = fs::File::create(output_dir.join("simple.txt")).unwrap();
-    simple_file.write_all(simple.as_bytes()).unwrap();
+    fs::write(output_dir.join("detailed.txt"), &detailed).unwrap();
+    fs::write(output_dir.join("medium.txt"), &medium).unwrap();
+    fs::write(output_dir.join("simple.txt"), &simple).unwrap();
 }
-
 #[test]
-fn test_image_to_ascii_with_custom_charset() {
-    // Создаем путь к тестовому изображению
+fn test_image_to_ascii_custom_charset() {
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
-    let test_image = test_dir.join("test_custom.png");
-
-    // Создаем тестовое изображение
+    let test_image = test_dir.join("test_custom_charset.png");
     create_test_image(&test_image);
-
-    // Создаем пользовательский набор символов
     let custom_charset = "XO-.";
-
-    // Преобразуем изображение в ASCII с пользовательским набором символов
     let result = image_to_ascii(&test_image, 20, 10, custom_charset).unwrap();
-
-    // Проверяем, что результат содержит только символы из пользовательского набора и новую строку
     for c in result.chars() {
         if c != '\n' {
             assert!(
@@ -143,30 +87,17 @@ fn test_image_to_ascii_with_custom_charset() {
             );
         }
     }
+    fs::write(test_dir.join("output/custom_charset.txt"), &result).unwrap();
 }
 
 #[test]
-fn test_image_to_ascii_with_chars_vector() {
-    // Создаем путь к тестовому изображению
+fn test_image_to_ascii_chars_vector() {
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
-    let test_image = test_dir.join("test_vector.png");
-
-    // Создаем тестовое изображение
+    let test_image = test_dir.join("test_chars_vector.png");
     create_test_image(&test_image);
-
-    // Создаем вектор символов
     let chars_vec = vec!['#', '=', '-', '.', ' '];
-
-    // Преобразуем изображение в ASCII с вектором символов
-    let result = image_to_ascii_with_chars(&test_image, 20, 10, &chars_vec).unwrap();
-
-    // Проверяем, что результат не пуст
-    assert!(
-        !result.is_empty(),
-        "ASCII art with chars vector should not be empty"
-    );
-
-    // Проверяем, что результат содержит только символы из вектора и новую строку
+    let result = image_to_ascii_chars(&test_image, 20, 10, &chars_vec).unwrap();
+    assert!(!result.is_empty(), "Chars vector output should not be empty");
     for c in result.chars() {
         if c != '\n' {
             assert!(
@@ -176,96 +107,113 @@ fn test_image_to_ascii_with_chars_vector() {
             );
         }
     }
+    fs::write(test_dir.join("output/chars_vector.txt"), &result).unwrap();
 }
 
 #[test]
 fn test_different_image_dimensions() {
-    // Создаем путь к тестовому изображению
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
     let test_image = test_dir.join("test_dimensions.png");
-
-    // Создаем тестовое изображение
     create_test_image(&test_image);
 
-    // Тестируем разные размеры выходного ASCII-изображения
     let small = image_to_ascii(&test_image, 10, 5, CHAR_SET_SIMPLE).unwrap();
     let medium = image_to_ascii(&test_image, 30, 15, CHAR_SET_SIMPLE).unwrap();
     let large = image_to_ascii(&test_image, 50, 25, CHAR_SET_SIMPLE).unwrap();
+    assert_eq!(small.lines().count(), 5, "Small output should have 5 lines");
+    assert_eq!(medium.lines().count(), 15, "Medium output should have 15 lines");
+    assert_eq!(large.lines().count(), 25, "Large output should have 25 lines");
 
-    // Подсчитываем количество строк в каждом результате
-    let small_lines = small.lines().count();
-    let medium_lines = medium.lines().count();
-    let large_lines = large.lines().count();
-
-    // Проверяем, что количество строк не превышает указанные значения
-    assert!(
-        small_lines <= 5,
-        "Small ASCII art should have at most 5 lines"
-    );
-    assert!(
-        medium_lines <= 15,
-        "Medium ASCII art should have at most 15 lines"
-    );
-    assert!(
-        large_lines <= 25,
-        "Large ASCII art should have at most 25 lines"
-    );
-
-    // Проверяем длину первой строки в каждом результате
     if let Some(first_line) = small.lines().next() {
-        assert!(
-            first_line.chars().count() <= 10,
-            "Small ASCII art line should have at most 10 characters"
-        );
+        assert_eq!(first_line.chars().count(), 10, "Small line should have 10 chars");
     }
-
     if let Some(first_line) = medium.lines().next() {
-        assert!(
-            first_line.chars().count() <= 30,
-            "Medium ASCII art line should have at most 30 characters"
-        );
+        assert_eq!(first_line.chars().count(), 30, "Medium line should have 30 chars");
     }
-
     if let Some(first_line) = large.lines().next() {
-        assert!(
-            first_line.chars().count() <= 50,
-            "Large ASCII art line should have at most 50 characters"
-        );
+        assert_eq!(first_line.chars().count(), 50, "Large line should have 50 chars");
     }
 }
 
 #[test]
 fn test_empty_charset_error() {
-    // Создаем путь к тестовому изображению
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
-    let test_image = test_dir.join("test_error.png");
-
-    // Создаем тестовое изображение
+    let test_image = test_dir.join("test_empty_charset_error.png");
     create_test_image(&test_image);
 
-    // Пытаемся преобразовать изображение с пустым набором символов
-    let result = image_to_ascii(&test_image, 20, 10, "");
-
-    // Проверяем, что функция вернула ошибку
-    assert!(
-        result.is_err(),
-        "Function should return error for empty charset"
-    );
-
-    // Проверяем, что ошибка имеет правильный тип (если можно получить доступ к типу ошибки)
-    if let Err(err) = result {
-        // Преобразуем ошибку в строку и проверяем содержимое
+    let result_str = image_to_ascii(&test_image, 20, 10, "");
+    assert!(result_str.is_err(), "Str charset: Error expected for empty charset");
+    if let Err(err) = result_str {
         let err_string = format!("{:?}", err);
         assert!(
             err_string.contains("Empty character set"),
-            "Error should mention empty character set"
+            "Str charset: Error message should mention empty character set"
         );
     }
 
-    // То же самое для функции image_to_ascii_with_chars
-    let result = image_to_ascii_with_chars(&test_image, 20, 10, &Vec::<char>::new());
-    assert!(
-        result.is_err(),
-        "Function should return error for empty chars vector"
-    );
+    let result_chars = image_to_ascii_chars(&test_image, 20, 10, &Vec::<char>::new());
+    assert!(result_chars.is_err(), "Chars vector: Error expected for empty charset");
+    if let Err(err) = result_chars {
+        let err_string = format!("{:?}", err);
+        assert!(
+            err_string.contains("Empty character set"),
+            "Chars vector: Error message should mention empty character set"
+        );
+    }
+}
+
+#[test]
+fn test_image_to_ascii_configurable_aspect_ratio() {
+    let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
+    let test_image = test_dir.join("test_aspect_ratio.png");
+    create_test_image(&test_image);
+
+    let config_aspect_1 = AsciiArtConfig {
+        width: 20,
+        height: 20,
+        aspect_ratio_compensation: 1.0,
+        ..Default::default()
+    };
+    let result_aspect_1 = image_to_ascii_configurable(&test_image, &config_aspect_1).unwrap();
+    let lines_aspect_1 = result_aspect_1.lines().count();
+
+    let config_aspect_2 = AsciiArtConfig {
+        width: 20,
+        height: 20,
+        aspect_ratio_compensation: 2.0,
+        ..config_aspect_1
+    };
+    let result_aspect_2 = image_to_ascii_configurable(&test_image, &config_aspect_2).unwrap();
+    let lines_aspect_2 = result_aspect_2.lines().count();
+
+    println!("lines_aspect_1: {}", lines_aspect_1);
+    println!("lines_aspect_2: {}", lines_aspect_2);
+
+    assert!(lines_aspect_2 < lines_aspect_1, "Lines with aspect 2.0 should be less than with 1.0");
+    fs::write(test_dir.join("output/aspect_ratio_1.txt"), &result_aspect_1).unwrap();
+    fs::write(test_dir.join("output/aspect_ratio_2.txt"), &result_aspect_2).unwrap();
+}
+
+#[test]
+fn test_image_to_ascii_configurable_resize_filter() {
+    let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
+    let test_image = test_dir.join("test_resize_filter.png");
+    create_test_image(&test_image);
+    let config_lanczos3 = AsciiArtConfig {
+        resize_filter: FilterType::Lanczos3,
+        width: 20,
+        height: 10,
+        ..Default::default()
+    };
+    let result_lanczos3 = image_to_ascii_configurable(&test_image, &config_lanczos3).unwrap();
+
+    let config_nearest = AsciiArtConfig {
+        resize_filter: FilterType::Nearest,
+        ..config_lanczos3
+    };
+    let result_nearest = image_to_ascii_configurable(&test_image, &config_nearest).unwrap();
+
+    assert_ne!(result_lanczos3, result_nearest, "Outputs with different filters should be different");
+
+    fs::write(test_dir.join("output/resize_lanczos3.txt"), &result_lanczos3).unwrap();
+    fs::write(test_dir.join("output/resize_nearest.txt"), &result_nearest).unwrap();
 }

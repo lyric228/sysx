@@ -1,11 +1,7 @@
-//! ASCII art module for converting images to ASCII representation
-//!
-//! This module provides functionality to convert images of various formats
-//! into ASCII art, with customizable character sets and output dimensions.
-
+// src/utils/ascii.rs
 use crate::types::error::SysxError;
-use image::{GenericImageView, Pixel};
-use std::path::Path;
+use image::{GenericImageView, Pixel, DynamicImage, imageops::FilterType};
+use std::{path::Path, io};
 
 /// Default character set with high density - many different brightness levels
 pub const CHAR_SET_DETAILED: &str =
@@ -17,7 +13,89 @@ pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:. ";
 /// Minimal character set for simple ASCII art
 pub const CHAR_SET_SIMPLE: &str = "@#*+:. ";
 
-/// Convert an image to ASCII art
+/// Configuration for ASCII art conversion.
+pub struct AsciiArtConfig {
+    pub width: u32,
+    pub height: u32,
+    pub aspect_ratio_compensation: f32,
+    pub resize_filter: FilterType,
+    pub char_set: Vec<char>,
+}
+
+impl Default for AsciiArtConfig {
+    fn default() -> Self {
+        AsciiArtConfig {
+            width: 100,
+            height: 50,
+            aspect_ratio_compensation: 2.0,
+            resize_filter: FilterType::Lanczos3,
+            char_set: CHAR_SET_DETAILED.chars().collect::<Vec<char>>(),
+        }
+    }
+}
+
+fn _image_to_ascii_core(
+    img: DynamicImage,
+    config: &AsciiArtConfig,
+) -> Result<String, SysxError> {
+    if config.char_set.is_empty() {
+        return Err(SysxError::ValidationError {
+            expected: "Non-empty character set".to_string(),
+            actual: "Empty character set".to_string(),
+            context: Some("ASCII conversion requires at least one character".to_string()),
+        });
+    }
+
+    let aspect_ratio = img.width() as f32 / img.height() as f32;
+    let scaled_width = config.width;
+    let calculated_scaled_height = (config.width as f32 / aspect_ratio / config.aspect_ratio_compensation) as u32;
+    let scaled_height = std::cmp::min(calculated_scaled_height, config.height);
+
+    println!("aspect_ratio_compensation: {}", config.aspect_ratio_compensation);
+    println!("scaled_height (calculated): {}", calculated_scaled_height);
+    println!("scaled_height (min applied): {}", scaled_height);
+
+    let resized_img = img.resize_exact(
+        scaled_width,
+        scaled_height,
+        config.resize_filter,
+    );
+
+    let mut result =
+        String::with_capacity((scaled_width * scaled_height) as usize + scaled_height as usize);
+
+    for y in 0..scaled_height {
+        for x in 0..scaled_width {
+            let pixel = resized_img.get_pixel(x, y);
+            let brightness = pixel_brightness(pixel);
+            let char_index =
+                ((brightness * (config.char_set.len() as f32 - 1.0)) as usize).min(config.char_set.len() - 1);
+            result.push(config.char_set[char_index]);
+        }
+        result.push('\n');
+    }
+    Ok(result)
+}
+
+/// Convert an image to ASCII art with customizable options.
+pub fn image_to_ascii_configurable<P>(
+    path: P,
+    config: &AsciiArtConfig,
+) -> Result<String, SysxError>
+where
+    P: AsRef<Path>,
+{
+    let img = image::open(path.as_ref()).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Could not open image file at path '{}': {}", path.as_ref().display(), e),
+        )
+    }).map_err(SysxError::from)?;
+    _image_to_ascii_core(img, config)
+}
+
+
+/// Convert an image to ASCII art using a character set string.
 pub fn image_to_ascii<P, C>(
     path: P,
     width: u32,
@@ -28,30 +106,7 @@ where
     P: AsRef<Path>,
     C: AsRef<str>,
 {
-    let img = image::open(path.as_ref())
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to open image: {}", e),
-            )
-        })
-        .map_err(SysxError::from)?;
-
-    let aspect_ratio = img.width() as f32 / img.height() as f32;
-    let scaled_width = width;
-    let scaled_height = (width as f32 / aspect_ratio / 2.0) as u32;
-
-    let scaled_height = std::cmp::min(scaled_height, height);
-
-    let img = img.resize_exact(
-        scaled_width,
-        scaled_height,
-        image::imageops::FilterType::Lanczos3,
-    );
-
-    let char_set = char_set.as_ref();
-    let chars: Vec<char> = char_set.chars().collect();
-
+    let chars: Vec<char> = char_set.as_ref().chars().collect();
     if chars.is_empty() {
         return Err(SysxError::ValidationError {
             expected: "Non-empty character set".to_string(),
@@ -60,26 +115,16 @@ where
         });
     }
 
-    let mut result =
-        String::with_capacity((scaled_width * scaled_height) as usize + scaled_height as usize);
-
-    for y in 0..scaled_height {
-        for x in 0..scaled_width {
-            let pixel = img.get_pixel(x, y);
-
-            let brightness = pixel_brightness(pixel);
-
-            let char_index =
-                ((brightness * (chars.len() as f32 - 1.0)) as usize).min(chars.len() - 1);
-            result.push(chars[char_index]);
-        }
-        result.push('\n');
-    }
-
-    Ok(result)
+    let config = AsciiArtConfig {
+        width,
+        height,
+        char_set: chars,
+        ..Default::default()
+    };
+    image_to_ascii_configurable(path, &config)
 }
 
-/// Calculate brightness of a pixel, taking into account human perception of colors
+/// Calculate brightness of a pixel, taking into account human perception of colors.
 pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     let channels = pixel.channels();
 
@@ -94,8 +139,8 @@ pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     channels[0] as f32 / 255.0
 }
 
-/// Alternative function that allows using a collection of chars
-pub fn image_to_ascii_with_chars<P, C>(
+/// Alternative function that allows using a collection of chars.
+pub fn image_to_ascii_chars<P, C>(
     path: P,
     width: u32,
     height: u32,
@@ -105,52 +150,11 @@ where
     P: AsRef<Path>,
     C: AsRef<[char]>,
 {
-    let img = image::open(path.as_ref())
-        .map_err(|e| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to open image: {}", e),
-            )
-        })
-        .map_err(SysxError::from)?;
-
-    let aspect_ratio = img.width() as f32 / img.height() as f32;
-    let scaled_width = width;
-    let scaled_height = (width as f32 / aspect_ratio / 2.0) as u32;
-
-    let scaled_height = std::cmp::min(scaled_height, height);
-
-    let img = img.resize_exact(
-        scaled_width,
-        scaled_height,
-        image::imageops::FilterType::Lanczos3,
-    );
-
-    let chars = char_set.as_ref();
-
-    if chars.is_empty() {
-        return Err(SysxError::ValidationError {
-            expected: "Non-empty character set".to_string(),
-            actual: "Empty character set".to_string(),
-            context: Some("ASCII conversion requires at least one character".to_string()),
-        });
-    }
-
-    let mut result =
-        String::with_capacity((scaled_width * scaled_height) as usize + scaled_height as usize);
-
-    for y in 0..scaled_height {
-        for x in 0..scaled_width {
-            let pixel = img.get_pixel(x, y);
-
-            let brightness = pixel_brightness(pixel);
-
-            let char_index =
-                ((brightness * (chars.len() as f32 - 1.0)) as usize).min(chars.len() - 1);
-            result.push(chars[char_index]);
-        }
-        result.push('\n');
-    }
-
-    Ok(result)
+    let config = AsciiArtConfig {
+        width, 
+        height,
+        char_set: char_set.as_ref().to_vec(),
+        ..Default::default()
+    };
+    image_to_ascii_configurable(path, &config)
 }
