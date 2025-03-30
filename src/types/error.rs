@@ -24,12 +24,14 @@ pub enum SysxError {
 
     /// Type validation mismatch error.
     #[error(
-        "Type validation error: expected {expected}, found {actual}{:?}",
+        "Type validation error: expected {:?}, found {:?}{:?}",
+        expected,
+        actual,
         context
     )]
     ValidationError {
         /// Expected type description.
-        expected: &'static str,
+        expected: String,
         /// Detected type description.
         actual: String,
         /// Additional error context.

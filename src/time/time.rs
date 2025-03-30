@@ -74,13 +74,10 @@ impl SleepTime {
     /// // d будет эквивалентно 1.5 секундам
     /// ```
     pub fn to_duration(self) -> Duration {
-        // Используем абсолютное значение вместо assert
         let seconds = self.seconds.abs();
-        // Вычисляем целые секунды и наносекунды
         let secs = seconds.trunc() as u64;
         let nanos = (seconds.fract() * 1_000_000_000.0).round() as u32;
 
-        // Корректировка при переполнении наносекунд
         let (secs, nanos) = if nanos >= 1_000_000_000 {
             (secs.saturating_add(1), 0)
         } else {
@@ -185,7 +182,6 @@ impl FromStr for SleepTime {
             _ => return Err(SleepError::InvalidFormat(s.to_string())),
         };
 
-        // Сохраняем проверку на отрицательные значения для API безопасности
         if num < 0.0 {
             return Err(SleepError::NegativeTime);
         }
