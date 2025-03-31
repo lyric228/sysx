@@ -48,14 +48,14 @@ impl File {
     }
 
     /// Reads the entire file contents into a String.
-    pub fn read_to_string(&mut self) -> io::Result<String> {
+    pub fn read_to_string(&self) -> io::Result<String> {
         let mut contents = String::new();
         self.inner.read_to_string(&mut contents)?;
         Ok(contents)
     }
 
     /// Reads the entire file contents into a vector of bytes.
-    pub fn read_to_end(&mut self) -> io::Result<Vec<u8>> {
+    pub fn read_to_end(&self) -> io::Result<Vec<u8>> {
         let mut contents = Vec::new();
         self.inner.read_to_end(&mut contents)?;
         Ok(contents)
