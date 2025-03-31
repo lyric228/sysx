@@ -1,7 +1,6 @@
 pub mod io {
     pub mod cmd;
     pub mod env;
-    pub mod fs;
     pub mod log;
 }
 pub mod net {
