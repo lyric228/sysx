@@ -78,11 +78,18 @@ fn _image_to_ascii_core(
     for y in 0..scaled_height {
         for x in 0..scaled_width {
             let pixel = resized_img.get_pixel(x, y);
-            let brightness = pixel_brightness(pixel);
+            let brightness = pixel_brightness(pixel); // 0.0 = black, 1.0 = white
 
-            let char_f_index = (1.0 - brightness) * num_chars_f;
+            // Apply sqrt to brightness to adjust mapping: makes lighter areas map more readily to index 0
+            let adjusted_brightness = brightness.sqrt();
+
+            // Map adjusted brightness to character index.
+            // Black (0.0) -> dark chars (high index)
+            // White (1.0) -> light chars (low index)
+            let char_f_index = (1.0 - adjusted_brightness) * num_chars_f;
             let mut char_index = char_f_index.floor() as usize;
 
+            // Clamp index to the valid range [0, num_chars - 1]
             if char_index >= num_chars {
                 char_index = num_chars - 1;
             }
