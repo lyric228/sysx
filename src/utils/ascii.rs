@@ -1,20 +1,19 @@
-// src/utils/ascii.rs
 use crate::types::error::SysxError;
 use image::{GenericImageView, Pixel, DynamicImage, imageops::FilterType};
 use std::{path::Path, io};
 
-/// Ultra detailed character set with maximum brightness levels (94 characters)
+/// Ultra detailed character set (94 characters) - Standard set, space moved to end for lightest
 pub const CHAR_SET_VERY_DETAILED: &str =
     "@QB#NgWM8RDHdOKq9$6khEPXwmeZaoS2yjufF]}{tx1zv7lciL/\\|?*>r^;:_\"~,'.-` ";
 
-/// Detailed character set (70 characters) 
+/// Detailed character set (70 characters) - Standard set, space moved to end for lightest
 pub const CHAR_SET_DETAILED: &str =
-    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^ ";
+    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^'. ";
 
-/// Medium density character set (14 characters)
-pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:;,.~ ";
+/// Medium density character set (11 characters) - Added more intermediate characters
+pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:,. ";
 
-/// Minimal character set for simple ASCII art (7 characters)
+/// Minimal character set (7 characters) - Ordered from darkest to lightest
 pub const CHAR_SET_SIMPLE: &str = "@#*+:. ";
 
 /// Configuration for ASCII art conversion.
@@ -31,9 +30,9 @@ impl Default for AsciiArtConfig {
         AsciiArtConfig {
             width: 100,
             height: 50,
-            aspect_ratio_compensation: 2.0,
-            resize_filter: FilterType::Lanczos3,
-            char_set: CHAR_SET_DETAILED.chars().collect::<Vec<char>>(),
+            aspect_ratio_compensation: 2.0, // Default aspect ratio compensation
+            resize_filter: FilterType::Nearest,
+            char_set: CHAR_SET_DETAILED.chars().collect::<Vec<char>>(), // Default uses the detailed set
         }
     }
 }
