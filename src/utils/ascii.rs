@@ -7,11 +7,11 @@ use std::{path::Path, io};
 pub const CHAR_SET_VERY_DETAILED: &str =
     "@QB#NgWM8RDHdOKq9$6khEPXwmeZaoS2yjufF]}{tx1zv7lciL/\\|?*>r^;:_\"~,'.-` ";
 
-/// Detailed character set (70 characters) - removed period for better visual flow
+/// Detailed character set (70 characters) 
 pub const CHAR_SET_DETAILED: &str =
-    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`' ";
+    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^ ";
 
-/// Medium density character set (14 characters) - expanded from original
+/// Medium density character set (14 characters)
 pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:;,.~ ";
 
 /// Minimal character set for simple ASCII art (7 characters)
