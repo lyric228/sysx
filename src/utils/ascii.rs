@@ -67,7 +67,11 @@ fn _image_to_ascii_core(
 
     let num_chars = config.char_set.len();
     if num_chars == 0 {
-         return Err(SysxError::InternalError("Character set became empty unexpectedly.".to_string()));
+        return Err(SysxError::ValidationError {
+            expected: "Non-empty character set".to_string(),
+            actual: "Empty character set".to_string(),
+            context: Some("Internal check failed: character set became empty unexpectedly after initial validation.".to_string()),
+        });
     }
     let num_chars_f = num_chars as f32;
 
