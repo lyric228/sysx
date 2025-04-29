@@ -80,9 +80,9 @@ fn _image_to_ascii_core(
             let pixel = resized_img.get_pixel(x, y);
             let brightness = pixel_brightness(pixel); // 0.0 = black, 1.0 = white
 
-            // Apply sqrt to brightness to adjust mapping: makes lighter areas map more readily to index 0
-            let adjusted_brightness = brightness.sqrt();
-
+            // Apply a stronger power function (e.g., 0.25) to brightness
+            // This further biases the mapping towards index 0 for brighter pixels.
+            let adjusted_brightness = brightness.powf(0.25); // Changed from sqrt() to powf(0.25)
             // Map adjusted brightness to character index.
             // Black (0.0) -> dark chars (high index)
             // White (1.0) -> light chars (low index)
