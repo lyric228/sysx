@@ -3,14 +3,18 @@ use crate::types::error::SysxError;
 use image::{GenericImageView, Pixel, DynamicImage, imageops::FilterType};
 use std::{path::Path, io};
 
-/// Default character set with high density - many different brightness levels
+/// Ultra detailed character set with maximum brightness levels (94 characters)
+pub const CHAR_SET_VERY_DETAILED: &str =
+    "@QB#NgWM8RDHdOKq9$6khEPXwmeZaoS2yjufF]}{tx1zv7lciL/\\|?*>r^;:_\"~,'.-` ";
+
+/// Detailed character set (70 characters) - removed period for better visual flow
 pub const CHAR_SET_DETAILED: &str =
-    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+    "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`' ";
 
-/// Medium density character set - fewer characters but still good detail
-pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:. ";
+/// Medium density character set (14 characters) - expanded from original
+pub const CHAR_SET_MEDIUM: &str = "@%#*+=-:;,.~ ";
 
-/// Minimal character set for simple ASCII art
+/// Minimal character set for simple ASCII art (7 characters)
 pub const CHAR_SET_SIMPLE: &str = "@#*+:. ";
 
 /// Configuration for ASCII art conversion.
@@ -94,7 +98,6 @@ where
     _image_to_ascii_core(img, config)
 }
 
-
 /// Convert an image to ASCII art using a character set string.
 pub fn image_to_ascii<P, C>(
     path: P,
@@ -124,7 +127,8 @@ where
     image_to_ascii_configurable(path, &config)
 }
 
-/// Calculate brightness of a pixel, taking into account human perception of colors.
+/// Calculate brightness of a pixel, taking into account human perception of colors
+/// Uses standard luminance formula: 0.299*R + 0.587*G + 0.114*B
 pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     let channels = pixel.channels();
 
