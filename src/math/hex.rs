@@ -1,4 +1,5 @@
 use crate::{Result, SysxError};
+use crate::math::{is_even, is_odd};
 
 /// Returns a string containing only hex characters from the input.
 pub fn clean_hex(input: &str) -> String {
@@ -10,7 +11,7 @@ pub fn clean_hex(input: &str) -> String {
 pub fn hex_to_str(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
 
-    if cleaned.len() % 2 != 0 {
+    if is_odd(cleaned.len()) {
         return Err(SysxError::InvalidSyntax(
             "Hex string must have even length".into(),
         ));
@@ -47,14 +48,14 @@ pub fn is_valid_hex(hex: &str) -> bool {
 /// Checks if a whitespace-cleaned hex string has an even length and consists only of hex digits.
 pub fn is_valid_hex_strict(hex: &str) -> bool {
     let trimmed: String = hex.chars().filter(|c| !c.is_whitespace()).collect();
-    !trimmed.is_empty() && trimmed.len() % 2 == 0 && trimmed.chars().all(|c| c.is_ascii_hexdigit())
+    !trimmed.is_empty() && is_even(trimmed.len()) && trimmed.chars().all(|c| c.is_ascii_hexdigit())
 }
 
 /// Formats a string containing hex digits into a space-separated hex string.
 /// Returns an error if the cleaned hex string has odd length or is empty.
 pub fn fmt_hex(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
-    if cleaned.is_empty() || cleaned.len() % 2 != 0 {
+    if cleaned.is_empty() || is_odd(cleaned.len()) {
         return Err(SysxError::InvalidSyntax(
             "Hexadecimal string length must be a multiple of 2".into(),
         ));
