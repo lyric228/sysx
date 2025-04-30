@@ -1,15 +1,7 @@
 pub use chrono::Local;
 pub use colored::{Color, ColoredString, Colorize};
 
-/// Logging level с привязанными стилями.
-///
-/// Перечисление описывает уровни логирования с их визуальным представлением.
-///
-/// # Пример
-/// ```
-/// let level = LogLevel::Info;
-/// assert_eq!(format!("{:?}", level), "Info");
-/// ```
+/// Logging levels with associated styles.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
     Info,
@@ -23,13 +15,7 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
-    /// Возвращает цвет, соответствующий лог уровню.
-    ///
-    /// # Пример
-    /// ```
-    /// let color = LogLevel::Warning.style();
-    /// // Вернёт Color::Yellow
-    /// ```
+    /// Returns the color associated with the log level.
     pub fn style(&self) -> Color {
         match self {
             LogLevel::Info => Color::Blue,
@@ -44,17 +30,7 @@ impl LogLevel {
     }
 }
 
-/// Макрос для преобразования идентификатора лог-уровня в значение LogLevel.
-///
-/// Принимает уровень логирования (например, INFO) и возвращает соответствующий элемент
-/// перечисления LogLevel.
-///
-/// # Пример
-/// ```
-/// // Передаём идентификатор уровня
-/// let lvl = log_level!(INFO);
-/// // lvl будет равен LogLevel::Info
-/// ```
+/// Macro to convert a log level identifier (e.g., INFO) to a LogLevel enum value.
 #[macro_export]
 macro_rules! log_level {
     ($level:ident) => {{
@@ -74,16 +50,8 @@ macro_rules! log_level {
 }
 pub use log_level;
 
-/// Основной макрос логирования с упрощённым синтаксисом.
-///
-/// Формирует лог-сообщение с указанным уровнем и текстом, а при наличии опционального
-/// контекста - также выводит его.
-///
-/// # Пример
-/// ```
-/// log!(INFO, "System initialized");
-/// log!(ERROR, "File not found"; "Path: /etc/config.yaml");
-/// ```
+/// Primary logging macro with simplified syntax.
+/// Formats a log message with a specified level and text, and optional context.
 #[macro_export]
 macro_rules! log {
     ($level:ident, $($msg:tt)*) => {
@@ -104,15 +72,8 @@ macro_rules! log {
 }
 pub use log;
 
-/// Внутренний макрос логирования, который осуществляет фактический вывод сообщения.
-///
-/// Принимает уровень логирования ($level:expr), сформированное сообщение ($msg:expr),
-/// а также опциональный контекст ($ctx:expr). Выводит сообщение с временной меткой и стилизацией.
-///
-/// # Пример
-/// ```
-/// log_internal!(LogLevel::Debug, format!("Debug info: {}", 42), None);
-/// ```
+/// Internal logging macro that handles the actual message output.
+/// Takes log level, formatted message, and optional context.
 #[macro_export]
 macro_rules! log_internal {
     ($level:expr, $msg:expr, $ctx:expr) => {{
@@ -132,21 +93,8 @@ macro_rules! log_internal {
 }
 pub use log_internal;
 
-/// Макрос для стилизации текста с помощью цепочки методов.
-///
-/// Первым параметром принимает текст (или строку), вторым цвет или лог уровень, а третьим
-/// опционально набор стилей: например, bold, italic.
-///
-/// # Примеры
-/// ```
-/// // Пример с лог уровнем:
-/// let text = style!("Warning", LogLevel::Warning);
-/// // Вернёт строку, стилизованную в цвет, соответствующий LogLevel::Warning, с жирным шрифтом.
-///
-/// // Пример с указанием цвета и стилей:
-/// let text = style!("Error", Color::Red, bold italic);
-/// // Вернёт красный текст с жирным и наклонным стилем.
-/// ```
+/// Macro for styling text using method chaining.
+/// Takes text, a color or log level, and optional styles (e.g., bold, italic).
 #[macro_export]
 macro_rules! style {
     ($text:expr, $level:expr) => {{
@@ -164,15 +112,7 @@ macro_rules! style {
 }
 pub use style;
 
-/// Форматирует временную метку с использованием текущего времени.
-///
-/// Возвращает строку с временной меткой, стилизованную в приглушённом цвете.
-///
-/// # Пример
-/// ```
-/// let timestamp = format_timestamp();
-/// // Вернёт, например, "2023-10-05 14:23:45.678" в приглушённом цвете.
-/// ```
+/// Formats the current time as a dimmed timestamp string.
 pub fn format_timestamp() -> ColoredString {
     Local::now()
         .format("%Y-%m-%d %H:%M:%S%.3f")
