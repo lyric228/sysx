@@ -1,24 +1,15 @@
 use std::process::{Command, Output, Stdio};
-
 use anyhow::Context;
-
 use crate::{Result, SysxError};
 
-/// Выполняет команду в «тихом» режиме, не выводя результат на экран.
+/// Executes a command silently, without printing output to the console.
 ///
-/// Принимает строку команды, разбирает её на программу и аргументы, затем выполняет команду.
-/// Если команда завершается успешно, возвращает стандартный вывод, иначе - стандартную ошибку.
+/// Parses the command string into a program and arguments.
+/// Returns stdout on success, stderr on failure.
 ///
-/// # Возвращаемое значение
-/// Кортеж, где первый элемент - строка результата выполнения (stdout или stderr), а второй - полный объект Output.
-///
-/// # Пример
-/// ```
-/// // Передаём команду в виде строки
-/// let (output_str, output) = silent_run("echo Hello").unwrap();
-/// // output_str будет "Hello\n", output содержит детали исполнения команды.
-/// ```
-pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
+/// # Returns
+/// A tuple containing the output string (stdout or stderr) and the full Output object.
+pub fn slrun(command_line: &str) -> Result<(String, Output)> {
     let trimmed = command_line.trim();
 
     if trimmed.is_empty() {
@@ -43,65 +34,40 @@ pub fn silent_run(command_line: &str) -> Result<(String, Output)> {
         .with_context(|| format!("Failed to execute command '{}'", command_line))
         .map_err(|e| SysxError::AnyhowError(e))?;
 
-    let res = if output.status.success() {
+    let result = if output.status.success() {
         output.stdout.clone()
     } else {
         output.stderr.clone()
     };
 
-    let output_str = String::from_utf8(res).map_err(|e| SysxError::FromUtf8Error(e))?;
+    let output_str = String::from_utf8(result).map_err(|e| SysxError::FromUtf8Error(e))?;
 
     Ok((output_str, output))
 }
 
-/// Выполняет команду и выводит результат в стандартный вывод.
+/// Executes a command and prints its output to stdout.
 ///
-/// Вызывает silent_run для выполнения команды, затем печатает результат на экран.
+/// Internally calls `slrun` and then prints the result.
 ///
-/// # Возвращаемое значение
-/// Кортеж, содержащий строку результата и объект Output.
-///
-/// # Пример
-/// ```
-/// // Выполнение команды и печать результата в терминал
-/// let (output_str, output) = run("echo Hello").unwrap();
-/// // На экране появится "Hello\n"
-/// ```
+/// # Returns
+/// A tuple containing the output string and the full Output object.
 pub fn run(command: &str) -> Result<(String, Output)> {
-    let output = silent_run(command)?;
+    let output = slrun(command)?;
     println!("{}", output.0);
     Ok(output)
 }
 
-/// Макрос для вызова функции silent_run с форматированием строки команды.
-///
-/// Принимает набор аргументов для форматирования строки, вызывает silent_run с полученной командной строкой.
-///
-/// # Пример
-/// ```
-/// // Форматирование команды с подстановкой переменной
-/// let res = silent_runf!("echo {}", "Hello");
-/// // Выполнится команда "echo Hello", вернётся результат выполнения
-/// ```
+/// Macro to call `slrun` with formatted command string.
 #[macro_export]
-macro_rules! silent_runf {
+macro_rules! slrunf {
     ($($arg:tt)*) => {
-        silent_run(&format!($($arg)*))
+        slrun(&format!($($arg)*))
             .map_err(SysxError::from)
     }
 }
-pub use silent_runf;
+pub use slrunf;
 
-/// Макрос для вызова функции run с форматированием строки команды.
-///
-/// Принимает набор аргументов, форматирует команду с помощью format! и вызывает run.
-///
-/// # Пример
-/// ```
-/// // Форматирование команды и вывод результата
-/// let res = runf!("echo {}", "World");
-/// // Выполнится команда "echo World" и результат будет выведен на экран.
-/// ```
+/// Macro to call `run` with formatted command string.
 #[macro_export]
 macro_rules! runf {
     ($($arg:tt)*) => {
@@ -111,20 +77,8 @@ macro_rules! runf {
 }
 pub use runf;
 
-/// Считывает строку из стандартного ввода в предоставленный буфер.
-///
-/// Функция читает одну строку из stdin и записывает её в buffer.
-/// Если строка заканчивается символом новой строки, последний символ удаляется.
-///
-/// # Возвращаемое значение
-/// Возвращает Ok(()) при успешном чтении или ошибку типа SysxError.
-///
-/// # Пример
-/// ```
-/// let mut buf = String::new();
-/// input_buf(&mut buf).unwrap();
-/// // Допустим, введена строка "test\n", buf станет равен "test"
-/// ```
+/// Reads a line from stdin into the provided buffer.
+/// Removes the trailing newline character if present.
 pub fn input_buf(buffer: &mut String) -> Result<()> {
     std::io::stdin()
         .read_line(buffer)
@@ -137,18 +91,8 @@ pub fn input_buf(buffer: &mut String) -> Result<()> {
         })
 }
 
-/// Считывает строку из стандартного ввода и возвращает её.
-///
-/// Функция оборачивает input_buf, создавая новый buffer, считывая в него строку и возвращая значение.
-///
-/// # Возвращаемое значение
-/// Возвращает Ok(String) с содержимым строки, или ошибку типа SysxError.
-///
-/// # Пример
-/// ```
-/// let user_input = input().unwrap();
-/// // Если введено "data", user_input будет "data"
-/// ```
+/// Reads a line from stdin and returns it as a new String.
+/// Internally calls `input_buf`.
 pub fn input() -> Result<String> {
     let mut input_text = String::new();
     input_buf(&mut input_text)?;
