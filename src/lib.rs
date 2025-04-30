@@ -19,24 +19,12 @@ pub mod utils {
 }
 pub mod types {
     pub mod error;
-    pub mod types;
+    mod types;
     pub use types::*;
 }
 pub mod time {
-    pub mod time;
+    mod time;
     pub use time::*;
 }
 
 pub use types::error::*;
-
-pub mod deps {
-    pub use anyhow;
-    pub use chrono;
-    pub use colored;
-    pub use lazy_static;
-    pub use once_cell;
-    pub use rand;
-    pub use regex;
-    pub use shell_words;
-    pub use thiserror;
-}
