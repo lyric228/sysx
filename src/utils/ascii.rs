@@ -1,8 +1,7 @@
 use crate::types::error::SysxError;
-use image::{GenericImageView, Pixel, DynamicImage, imageops::FilterType};
-use std::{path::Path, io};
+use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
+use std::{io, path::Path};
 
-// Character sets ordered from LIGHTEST to DARKEST for better mapping
 /// Ultra detailed character set (94 characters) - Ordered Lightest to Darkest
 pub const CHAR_SET_VERY_DETAILED: &str =
     " `-.,'_:;^r*?/\\|()[]{}1LctvunxrjfmewpqaokSZEPX69RdHBMN#WQ@";
@@ -10,6 +9,7 @@ pub const CHAR_SET_VERY_DETAILED: &str =
 /// Detailed character set (70 characters) - Ordered Lightest to Darkest
 pub const CHAR_SET_DETAILED: &str =
     " `.'\",:;!ilI><~+_-?][}{)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+
 /// Medium density character set (11 characters) - Ordered Lightest to Darkest
 pub const CHAR_SET_MEDIUM: &str = " .,:;-+=*#%@";
 
@@ -17,12 +17,27 @@ pub const CHAR_SET_MEDIUM: &str = " .,:;-+=*#%@";
 pub const CHAR_SET_SIMPLE: &str = " .:*#=@";
 
 /// Configuration for ASCII art conversion.
+///
+/// Defines parameters for converting an image to ASCII art.
 pub struct AsciiArtConfig {
+    /// Target width for the ASCII art in characters.
     pub width: u32,
+    /// Maximum target height for the ASCII art in characters.
+    /// The actual height is calculated based on the `width`, the original image's aspect ratio,
+    /// and `aspect_ratio_compensation`. This value serves as an upper limit.
     pub height: u32,
+    /// Compensation factor for character aspect ratio (typically height/width).
+    /// Default is 2.0, assuming terminal characters are roughly twice as tall as they are wide.
+    /// Must be greater than 0.
     pub aspect_ratio_compensation: f32,
+    /// Filter type used for resizing the image.
     pub resize_filter: FilterType,
+    /// Character set used for mapping brightness levels. Ordered from lightest to darkest.
     pub char_set: Vec<char>,
+    /// Exponent applied to the normalized pixel brightness (0.0-1.0) before mapping to characters.
+    /// Lower values (e.g., 0.25) bias towards lighter characters (index 0) for brighter pixels.
+    /// A value of 1.0 results in a linear mapping. Default is 0.25.
+    pub brightness_exponent: f32,
 }
 
 impl Default for AsciiArtConfig {
@@ -30,9 +45,10 @@ impl Default for AsciiArtConfig {
         AsciiArtConfig {
             width: 100,
             height: 50,
-            aspect_ratio_compensation: 2.0, // Default aspect ratio compensation for typical terminal character aspect
+            aspect_ratio_compensation: 2.0,
             resize_filter: FilterType::Lanczos3,
-            char_set: CHAR_SET_DETAILED.chars().collect::<Vec<char>>(), // Default uses the detailed set
+            char_set: CHAR_SET_DETAILED.chars().collect::<Vec<char>>(),
+            brightness_exponent: 0.25,
         }
     }
 }
@@ -48,12 +64,32 @@ fn _image_to_ascii_core(
             context: Some("ASCII conversion requires at least one character".to_string()),
         });
     }
+    if config.aspect_ratio_compensation <= 0.0 {
+        return Err(SysxError::ValidationError {
+            expected: "Positive aspect ratio compensation".to_string(),
+            actual: format!("Compensation factor: {}", config.aspect_ratio_compensation),
+            context: Some("Aspect ratio compensation must be greater than 0".to_string()),
+        });
+    }
+    if config.width == 0 {
+        return Err(SysxError::ValidationError {
+            expected: "Positive width".to_string(),
+            actual: "Width: 0".to_string(),
+            context: Some("Target width must be greater than 0".to_string()),
+        });
+    }
+     if img.height() == 0 {
+        return Err(SysxError::ValidationError {
+            expected: "Non-zero image height".to_string(),
+            actual: "Image height: 0".to_string(),
+            context: Some("Input image height cannot be zero".to_string()),
+        });
+    }
 
     let aspect_ratio = img.width() as f32 / img.height() as f32;
     let scaled_width = config.width;
-    // Aspect ratio compensation is applied to height calculation
-    let calculated_scaled_height = (config.width as f32 / aspect_ratio / config.aspect_ratio_compensation).round() as u32;
-    // Ensure height doesn't exceed the configured maximum height and is at least 1
+    let calculated_scaled_height =
+        (config.width as f32 / aspect_ratio / config.aspect_ratio_compensation).round() as u32;
     let scaled_height = std::cmp::max(1, std::cmp::min(calculated_scaled_height, config.height));
 
     let resized_img = img.resize_exact(
@@ -64,32 +100,17 @@ fn _image_to_ascii_core(
 
     let mut result =
         String::with_capacity(((scaled_width + 1) * scaled_height) as usize);
-
     let num_chars = config.char_set.len();
-    if num_chars == 0 {
-        return Err(SysxError::ValidationError {
-            expected: "Non-empty character set".to_string(),
-            actual: "Empty character set".to_string(),
-            context: Some("Internal check failed: character set became empty unexpectedly after initial validation.".to_string()),
-        });
-    }
     let num_chars_f = num_chars as f32;
 
     for y in 0..scaled_height {
         for x in 0..scaled_width {
             let pixel = resized_img.get_pixel(x, y);
-            let brightness = pixel_brightness(pixel); // 0.0 = black, 1.0 = white
-
-            // Apply a stronger power function (e.g., 0.25) to brightness
-            // This further biases the mapping towards index 0 for brighter pixels.
-            let adjusted_brightness = brightness.powf(0.25); // Changed from sqrt() to powf(0.25)
-            // Map adjusted brightness to character index.
-            // Black (0.0) -> dark chars (high index)
-            // White (1.0) -> light chars (low index)
+            let brightness = pixel_brightness(pixel);
+            let adjusted_brightness = brightness.powf(config.brightness_exponent);
             let char_f_index = (1.0 - adjusted_brightness) * num_chars_f;
             let mut char_index = char_f_index.floor() as usize;
 
-            // Clamp index to the valid range [0, num_chars - 1]
             if char_index >= num_chars {
                 char_index = num_chars - 1;
             }
@@ -101,7 +122,6 @@ fn _image_to_ascii_core(
     Ok(result)
 }
 
-/// Convert an image to ASCII art with customizable options.
 pub fn image_to_ascii_configurable<P>(
     path: P,
     config: &AsciiArtConfig,
@@ -109,17 +129,16 @@ pub fn image_to_ascii_configurable<P>(
 where
     P: AsRef<Path>,
 {
-    let img = image::open(path.as_ref()).map_err(|e| {
-        io::Error::new(
+    let img_path = path.as_ref();
+    let img = image::open(img_path).map_err(|e| {
+        SysxError::Io(io::Error::new(
             io::ErrorKind::Other,
-            format!("Could not open image file at path '{}': {}", path.as_ref().display(), e),
-        )
-    }).map_err(SysxError::from)?;
+            format!("Could not open or decode image file at path '{}': {}", img_path.display(), e),
+        ))
+    })?;
     _image_to_ascii_core(img, config)
 }
 
-/// Convert an image to ASCII art using a character set string.
-/// Uses default aspect ratio compensation (2.0) and Lanczos3 filter.
 pub fn image_to_ascii<P, C>(
     path: P,
     width: u32,
@@ -131,14 +150,6 @@ where
     C: AsRef<str>,
 {
     let chars: Vec<char> = char_set.as_ref().chars().collect();
-    if chars.is_empty() {
-        return Err(SysxError::ValidationError {
-            expected: "Non-empty character set".to_string(),
-            actual: "Empty character set".to_string(),
-            context: Some("ASCII conversion requires at least one character".to_string()),
-        });
-    }
-
     let config = AsciiArtConfig {
         width,
         height,
@@ -148,18 +159,14 @@ where
     image_to_ascii_configurable(path, &config)
 }
 
-/// Calculate brightness of a pixel using standard luminance formula.
-/// Returns a value between 0.0 (black) and 1.0 (white).
 pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     let channels = pixel.to_rgb();
         let r = channels[0] as f32 / 255.0;
         let g = channels[1] as f32 / 255.0;
         let b = channels[2] as f32 / 255.0;
-
     (0.2126 * r + 0.7152 * g + 0.0722 * b).min(1.0)
     }
 
-/// Alternative function that allows using a collection of chars.
 pub fn image_to_ascii_chars<P, C>(
     path: P,
     width: u32,
@@ -171,14 +178,6 @@ where
     C: AsRef<[char]>,
 {
     let chars = char_set.as_ref();
-    if chars.is_empty() {
-        return Err(SysxError::ValidationError {
-            expected: "Non-empty character set".to_string(),
-            actual: "Empty character set".to_string(),
-            context: Some("ASCII conversion requires at least one character".to_string()),
-        });
-    }
-
     let config = AsciiArtConfig {
         width, 
         height,
