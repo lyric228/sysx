@@ -2,41 +2,33 @@ use crate::types::error::SysxError;
 use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
 use std::{io, path::Path};
 
-/// Ultra detailed character set (94 characters) - Ordered Lightest to Darkest
+/// Character sets for ASCII art, ordered lightest to darkest.
 pub const CHAR_SET_VERY_DETAILED: &str =
     " `-.,'_:;^r*?/\\|()[]{}1LctvunxrjfmewpqaokSZEPX69RdHBMN#WQ@";
 
-/// Detailed character set (70 characters) - Ordered Lightest to Darkest
+/// Detailed character set (70 characters).
 pub const CHAR_SET_DETAILED: &str =
     " `.'\",:;!ilI><~+_-?][}{)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 
-/// Medium density character set (11 characters) - Ordered Lightest to Darkest
+/// Medium density character set (11 characters).
 pub const CHAR_SET_MEDIUM: &str = " .,:;-+=*#%@";
 
-/// Minimal character set (7 characters) - Ordered Lightest to Darkest
+/// Minimal character set (7 characters).
 pub const CHAR_SET_SIMPLE: &str = " .:*#=@";
 
 /// Configuration for ASCII art conversion.
-///
-/// Defines parameters for converting an image to ASCII art.
 pub struct AsciiArtConfig {
-    /// Target width for the ASCII art in characters.
+    /// Target width in characters.
     pub width: u32,
-    /// Maximum target height for the ASCII art in characters.
-    /// The actual height is calculated based on the `width`, the original image's aspect ratio,
-    /// and `aspect_ratio_compensation`. This value serves as an upper limit.
+    /// Maximum target height in characters.
     pub height: u32,
-    /// Compensation factor for character aspect ratio (typically height/width).
-    /// Default is 2.0, assuming terminal characters are roughly twice as tall as they are wide.
-    /// Must be greater than 0.
+    /// Compensation factor for character aspect ratio (height/width). Must be > 0.
     pub aspect_ratio_compensation: f32,
-    /// Filter type used for resizing the image.
+    /// Filter type for resizing.
     pub resize_filter: FilterType,
-    /// Character set used for mapping brightness levels. Ordered from lightest to darkest.
+    /// Character set for brightness mapping.
     pub char_set: Vec<char>,
-    /// Exponent applied to the normalized pixel brightness (0.0-1.0) before mapping to characters.
-    /// Lower values (e.g., 0.25) bias towards lighter characters (index 0) for brighter pixels.
-    /// A value of 1.0 results in a linear mapping. Default is 0.25.
+    /// Exponent for brightness adjustment (0.0-1.0 before mapping).
     pub brightness_exponent: f32,
 }
 
@@ -107,7 +99,7 @@ fn _image_to_ascii_core(
         for x in 0..scaled_width {
             let pixel = resized_img.get_pixel(x, y);
             let brightness = pixel_brightness(pixel);
-            let adjusted_brightness = brightness.powf(config.brightness_exponent);
+            let adjusted_brightness = brightness.powf(config.bbrightness_exponent);
             let char_f_index = (1.0 - adjusted_brightness) * num_chars_f;
             let mut char_index = char_f_index.floor() as usize;
 
@@ -122,6 +114,7 @@ fn _image_to_ascii_core(
     Ok(result)
 }
 
+/// Converts an image to ASCII art using a given configuration.
 pub fn image_to_ascii_configurable<P>(
     path: P,
     config: &AsciiArtConfig,
@@ -139,6 +132,8 @@ where
     _image_to_ascii_core(img, config)
 }
 
+/// Converts an image to ASCII art with specified width, height, and character set string.
+/// Uses default values for other configuration options.
 pub fn image_to_ascii<P, C>(
     path: P,
     width: u32,
@@ -159,6 +154,7 @@ where
     image_to_ascii_configurable(path, &config)
 }
 
+/// Calculates the brightness of a pixel.
 pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     let channels = pixel.to_rgb();
         let r = channels[0] as f32 / 255.0;
@@ -166,23 +162,3 @@ pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
         let b = channels[2] as f32 / 255.0;
     (0.2126 * r + 0.7152 * g + 0.0722 * b).min(1.0)
     }
-
-pub fn image_to_ascii_chars<P, C>(
-    path: P,
-    width: u32,
-    height: u32,
-    char_set: C,
-) -> Result<String, SysxError>
-where
-    P: AsRef<Path>,
-    C: AsRef<[char]>,
-{
-    let chars = char_set.as_ref();
-    let config = AsciiArtConfig {
-        width, 
-        height,
-        char_set: chars.to_vec(),
-        ..Default::default()
-    };
-    image_to_ascii_configurable(path, &config)
-}
