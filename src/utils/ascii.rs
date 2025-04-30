@@ -99,7 +99,7 @@ fn _image_to_ascii_core(
         for x in 0..scaled_width {
             let pixel = resized_img.get_pixel(x, y);
             let brightness = pixel_brightness(pixel);
-            let adjusted_brightness = brightness.powf(config.bbrightness_exponent);
+            let adjusted_brightness = brightness.powf(config.brightness_exponent);
             let char_f_index = (1.0 - adjusted_brightness) * num_chars_f;
             let mut char_index = char_f_index.floor() as usize;
 
@@ -124,7 +124,7 @@ where
 {
     let img_path = path.as_ref();
     let img = image::open(img_path).map_err(|e| {
-        SysxError::Io(io::Error::new(
+        SysxError::IoError(io::Error::new(
             io::ErrorKind::Other,
             format!("Could not open or decode image file at path '{}': {}", img_path.display(), e),
         ))

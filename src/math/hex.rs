@@ -41,7 +41,7 @@ pub fn str_to_hex(text: &str) -> String {
 
 /// Checks if a string contains only hex characters and whitespace.
 pub fn is_valid_hex(hex: &str) -> bool {
-    !hex.is_empty && hex.chars()
+    !hex.is_empty() && hex.chars()
         .all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
 }
 

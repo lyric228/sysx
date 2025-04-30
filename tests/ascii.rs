@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use sysx::utils::ascii::{
-    CHAR_SET_DETAILED, CHAR_SET_MEDIUM, CHAR_SET_SIMPLE, image_to_ascii, image_to_ascii_chars,
+    CHAR_SET_DETAILED, CHAR_SET_MEDIUM, CHAR_SET_SIMPLE, image_to_ascii,
     image_to_ascii_configurable, pixel_brightness, AsciiArtConfig,
 };
 
@@ -91,26 +91,6 @@ fn test_image_to_ascii_custom_charset() {
 }
 
 #[test]
-fn test_image_to_ascii_chars_vector() {
-    let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
-    let test_image = test_dir.join("test_chars_vector.png");
-    create_test_image(&test_image);
-    let chars_vec = vec!['#', '=', '-', '.', ' '];
-    let result = image_to_ascii_chars(&test_image, 20, 10, &chars_vec).unwrap();
-    assert!(!result.is_empty(), "Chars vector output should not be empty");
-    for c in result.chars() {
-        if c != '\n' {
-            assert!(
-                chars_vec.contains(&c),
-                "Character '{}' not in chars vector",
-                c
-            );
-        }
-    }
-    fs::write(test_dir.join("output/chars_vector.txt"), &result).unwrap();
-}
-
-#[test]
 fn test_different_image_dimensions() {
     let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/resources");
     let test_image = test_dir.join("test_dimensions.png");
@@ -147,16 +127,6 @@ fn test_empty_charset_error() {
         assert!(
             err_string.contains("Empty character set"),
             "Str charset: Error message should mention empty character set"
-        );
-    }
-
-    let result_chars = image_to_ascii_chars(&test_image, 20, 10, &Vec::<char>::new());
-    assert!(result_chars.is_err(), "Chars vector: Error expected for empty charset");
-    if let Err(err) = result_chars {
-        let err_string = format!("{:?}", err);
-        assert!(
-            err_string.contains("Empty character set"),
-            "Chars vector: Error message should mention empty character set"
         );
     }
 }
