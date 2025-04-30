@@ -42,7 +42,7 @@ pub fn random_string(length: usize, charset: Option<&str>) -> Result<String> {
         }
         let char_vec: Vec<char> = chars.chars().collect();
         let distr = Uniform::new(0, char_vec.len());
-        let distr = distr.map_err(|e| Error::RandomError(e))?;
+        let distr = distr.map_err(Error::RandomError)?;
         let s: String = (0..length)
             .map(|_| {
                 let idx = rng.sample(distr);

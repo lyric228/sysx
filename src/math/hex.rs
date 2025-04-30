@@ -1,5 +1,5 @@
 use crate::{Result, SysxError};
-use crate::math::{is_even, is_odd};
+use crate::math::parity::{is_even, is_odd};
 
 /// Returns a string containing only hex characters from the input.
 pub fn clean_hex(input: &str) -> String {
@@ -27,14 +27,14 @@ pub fn hex_to_str(hex: &str) -> Result<String> {
         .map_err(SysxError::ParseIntError)?;
 
     String::from_utf8(bytes)
-        .map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
+        .map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {e}")))
 }
 
 /// Converts a string to a space-separated hexadecimal string.
 pub fn str_to_hex(text: &str) -> String {
     text.as_bytes()
         .iter()
-        .map(|b| format!("{:02X}", b))
+        .map(|b| format!("{b:02X}"))
         .collect::<Vec<_>>()
         .join(" ")
 }

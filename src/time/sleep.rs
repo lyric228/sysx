@@ -81,7 +81,7 @@ impl From<&str> for SleepTime {
     /// Panics on parsing errors (use `safe_sleep` for fallible parsing).
     fn from(s: &str) -> Self {
         s.parse()
-            .unwrap_or_else(|_| panic!("Failed to convert string '{}' to SleepTime", s))
+            .unwrap_or_else(|_| panic!("Failed to convert string '{s}' to SleepTime"))
     }
 }
 
@@ -94,7 +94,7 @@ impl FromStr for SleepTime {
         let s = s.trim().to_lowercase();
         let (num_part, unit) = s.split_at(
             s.find(|c: char| !c.is_numeric() && c != '.')
-                .unwrap_or_else(|| s.len()),
+                .unwrap_or(s.len()),
         );
 
         let num: f64 = num_part

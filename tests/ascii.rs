@@ -33,8 +33,7 @@ fn test_pixel_brightness() {
     let brightness = pixel_brightness(rgba_pixel);
     assert!(
         (brightness - 0.5).abs() < 0.01,
-        "RGBA pixel with 50% brightness: got {}",
-        brightness
+        "RGBA pixel with 50% brightness: got {brightness}"
     );
 }
 
@@ -81,9 +80,7 @@ fn test_image_to_ascii_custom_charset() {
         if c != '\n' {
             assert!(
                 custom_charset.contains(c),
-                "Character '{}' not in custom charset '{}'",
-                c,
-                custom_charset
+                "Character '{c}' not in custom charset '{custom_charset}'"
             );
         }
     }
@@ -123,7 +120,7 @@ fn test_empty_charset_error() {
     let result_str = image_to_ascii(&test_image, 20, 10, "");
     assert!(result_str.is_err(), "Str charset: Error expected for empty charset");
     if let Err(err) = result_str {
-        let err_string = format!("{:?}", err);
+        let err_string = format!("{err:?}");
         assert!(
             err_string.contains("Empty character set"),
             "Str charset: Error message should mention empty character set"
@@ -155,8 +152,8 @@ fn test_image_to_ascii_configurable_aspect_ratio() {
     let result_aspect_2 = image_to_ascii_configurable(&test_image, &config_aspect_2).unwrap();
     let lines_aspect_2 = result_aspect_2.lines().count();
 
-    println!("lines_aspect_1: {}", lines_aspect_1);
-    println!("lines_aspect_2: {}", lines_aspect_2);
+    println!("lines_aspect_1: {lines_aspect_1}");
+    println!("lines_aspect_2: {lines_aspect_2}");
 
     assert!(lines_aspect_2 < lines_aspect_1, "Lines with aspect 2.0 should be less than with 1.0");
     fs::write(test_dir.join("output/aspect_ratio_1.txt"), &result_aspect_1).unwrap();

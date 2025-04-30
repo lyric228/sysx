@@ -1,4 +1,4 @@
-use sysx::math::{is_even, is_even_or_odd, is_odd};
+use sysx::math::parity::*;
 
 #[cfg(test)]
 mod tests {

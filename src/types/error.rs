@@ -115,7 +115,7 @@ impl
             std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>,
         >,
     ) -> Self {
-        SysxError::MutexPoison(format!("Mutex consistency error: {}", err))
+        SysxError::MutexPoison(format!("Mutex consistency error: {err}"))
     }
 }
 

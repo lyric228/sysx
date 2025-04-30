@@ -20,7 +20,7 @@ pub fn slrun(command_line: &str) -> Result<(String, Output)> {
 
     let mut parts = shell_words::split(trimmed)
         .context("Failed to parse command line")
-        .map_err(|e| SysxError::AnyhowError(e.into()))?;
+        .map_err(SysxError::AnyhowError)?;
 
     let program = parts.remove(0);
     let args = parts;
@@ -31,8 +31,8 @@ pub fn slrun(command_line: &str) -> Result<(String, Output)> {
         .stdout(Stdio::piped())
         .stdin(Stdio::piped())
         .output()
-        .with_context(|| format!("Failed to execute command '{}'", command_line))
-        .map_err(|e| SysxError::AnyhowError(e))?;
+        .with_context(|| format!("Failed to execute command '{command_line}'"))
+        .map_err(SysxError::AnyhowError)?;
 
     let result = if output.status.success() {
         output.stdout.clone()
@@ -40,7 +40,7 @@ pub fn slrun(command_line: &str) -> Result<(String, Output)> {
         output.stderr.clone()
     };
 
-    let output_str = String::from_utf8(result).map_err(|e| SysxError::FromUtf8Error(e))?;
+    let output_str = String::from_utf8(result).map_err(SysxError::FromUtf8Error)?;
 
     Ok((output_str, output))
 }
@@ -83,11 +83,11 @@ pub fn input_buf(buffer: &mut String) -> Result<()> {
     std::io::stdin()
         .read_line(buffer)
         .map_err(|e| SysxError::AnyhowError(anyhow::anyhow!("Failed to read line: {}", e)))
-        .and_then(|_| {
+        .map(|_| {
             if buffer.ends_with('\n') {
                 buffer.pop();
             }
-            Ok(())
+            
         })
 }
 

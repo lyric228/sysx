@@ -8,8 +8,7 @@ pub mod net {
     pub mod ipv6;
 }
 pub mod math {
-    pub mod math;
-    pub use math::*;
+    pub mod parity;
     pub mod bin;
     pub mod hex;
 }
@@ -19,12 +18,11 @@ pub mod utils {
 }
 pub mod types {
     pub mod error;
-    mod types;
-    pub use types::*;
+    pub mod checker;
 }
 pub mod time {
-    mod time;
-    pub use time::*;
+    pub mod sleep;
+    pub use sleep::*;
 }
 
 pub use types::error::*;

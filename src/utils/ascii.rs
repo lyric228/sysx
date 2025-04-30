@@ -124,8 +124,7 @@ where
 {
     let img_path = path.as_ref();
     let img = image::open(img_path).map_err(|e| {
-        SysxError::IoError(io::Error::new(
-            io::ErrorKind::Other,
+        SysxError::IoError(io::Error::other(
             format!("Could not open or decode image file at path '{}': {}", img_path.display(), e),
         ))
     })?;

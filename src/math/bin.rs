@@ -25,14 +25,14 @@ pub fn bin_to_str(bin: &str) -> Result<String> {
         .collect::<std::result::Result<Vec<u8>, _>>()
         .map_err(SysxError::ParseIntError)?;
 
-    String::from_utf8(bytes).map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
+    String::from_utf8(bytes).map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {e}")))
 }
 
 /// Converts a string to a binary string (byte by byte, separated by spaces).
 pub fn str_to_bin(text: &str) -> String {
     text.as_bytes()
         .iter()
-        .map(|b| format!("{:08b}", b))
+        .map(|b| format!("{b:08b}"))
         .collect::<Vec<_>>()
         .join(" ")
 }

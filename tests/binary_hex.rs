@@ -23,7 +23,7 @@ fn test_hex_conversions() {
 
     // Тест ошибок
     assert!(hex_to_str("486").is_err()); // Нечётная длина
-    assert!(!hex_to_str("48GG").is_err()); // Невалидные символы должны быть проигнорированы 
+    assert!(hex_to_str("48GG").is_ok()); // Невалидные символы должны быть проигнорированы 
 }
 
 #[test]
