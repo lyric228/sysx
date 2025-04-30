@@ -6,47 +6,47 @@ use thiserror::Error;
 /// Main error type for the sysx library.
 #[derive(Debug, Error)]
 pub enum SysxError {
-    /// Invalid type syntax encountered during parsing.
+    /// Invalid type syntax during parsing.
     #[error("Invalid type syntax: {0}")]
     InvalidSyntax(String),
 
-    /// Nested generics are not supported in type definitions.
+    /// Nested generics are not supported.
     #[error("Nested generics not supported in type: {0}")]
     NestedGenerics(String),
 
-    /// Environment variable not found error.
+    /// Environment variable not found.
     #[error("Environment variable not found: {0}")]
     EnvVarNotFound(String),
 
-    /// Regular expression compilation failure.
+    /// Regex compilation failed.
     #[error("Regex compilation failed: {0}")]
     RegexFailure(#[from] RegexError),
 
-    /// Type validation mismatch error.
+    /// Type validation mismatch.
     #[error(
         "Type validation error: expected {:?}, found {:?}{:?}",
         expected,
         actual,
-        context
+        context,
     )]
     ValidationError {
-        /// Expected type description.
+        /// Expected type.
         expected: String,
-        /// Detected type description.
+        /// Actual type.
         actual: String,
-        /// Additional error context.
+        /// Additional context.
         context: Option<String>,
     },
 
-    /// Unsupported type construct detected.
+    /// Unsupported type construct.
     #[error("Unsupported type construct: {0}")]
     UnsupportedConstruct(String),
 
-    /// Error related to random generation operations.
+    /// Error during random generation.
     #[error("Random generation error: {0}")]
     RandomError(#[from] RandUniformError),
 
-    /// Error related to time-based operations.
+    /// Time-based operation error.
     #[error("Time error: {0}")]
     TimeError(TimeError),
 
@@ -58,23 +58,23 @@ pub enum SysxError {
     #[error(transparent)]
     IoError(#[from] std::io::Error),
 
-    /// Anyhow error.
+    /// Anyhow error wrapper.
     #[error(transparent)]
     AnyhowError(#[from] AnyhowError),
 
-    /// ParseInt error.
+    /// ParseInt error wrapper.
     #[error(transparent)]
     ParseIntError(#[from] std::num::ParseIntError),
 
-    /// ParseFloat error.
+    /// ParseFloat error wrapper.
     #[error(transparent)]
     ParseFloatError(#[from] std::num::ParseFloatError),
 
-    /// FromUtf8 error.
+    /// FromUtf8 error wrapper.
     #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
 
-    /// Path strip prefix error.
+    /// Path strip prefix error wrapper.
     #[error("Path strip prefix error: {0}")]
     StripPrefixError(#[from] std::path::StripPrefixError),
 
@@ -87,14 +87,14 @@ pub enum SysxError {
     SerializationError(String),
 }
 
-/// Errors related to time-based operations (e.g., sleep).
+/// Errors for time-based operations.
 #[derive(Debug, Error)]
 pub enum TimeError {
-    /// Invalid time format string provided.
+    /// Invalid time format string.
     #[error("Invalid time format: {0}")]
     InvalidFormat(String),
 
-    /// Time value exceeds the supported range.
+    /// Time value out of supported range.
     #[error("Time value out of range")]
     OutOfRange,
 
@@ -119,8 +119,8 @@ impl
     }
 }
 
-/// Alias for the result type returned by sysx library functions.
+/// Result type for sysx library functions.
 pub type Result<T> = std::result::Result<T, SysxError>;
 
-/// Alias for the main error type of the sysx library.
+/// Main error type alias.
 pub type Error = SysxError;

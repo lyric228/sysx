@@ -4,80 +4,43 @@ pub use std::time::Duration;
 
 use thiserror::Error;
 
-/// Выполняет приостановку выполнения текущего потока на указанное время.
+/// Suspends the current thread for the specified duration.
 ///
-/// Функция принимает различные форматы времени:
-/// - u64: интерпретируется как миллисекунды
-/// - f64: интерпретируется как секунды
-/// - &str: строка с указанием единиц измерения, например "500ms" или "2s"
-/// - Duration: стандартный тип Duration
-///
-/// Внутри вызывает thread::sleep.
-///
-/// # Пример
-/// ```
-/// // Сон 500 миллисекунд
-/// sleep(500);
-///
-/// // Сон 2 секунды
-/// sleep("2s");
-///
-/// // Сон 150 миллисекунд
-/// sleep("150ms");
-///
-/// // Сон 1.8 секунды
-/// sleep(1.8);
-///
-/// // Сон 3 секунды через Duration
-/// sleep(std::time::Duration::from_secs(3));
-/// ```
+/// Accepts `u64` (ms), `f64` (s), `&str` ("100ms", "2s"), or `Duration`.
 pub fn sleep<T: Into<SleepTime>>(time: T) {
     let duration = time.into().to_duration();
     thread::sleep(duration);
 }
 
-/// Возможные ошибки при парсинге времени сна.
+/// Possible errors when parsing sleep time.
 #[derive(Debug, Error)]
 pub enum SleepError {
-    /// Неверный формат строки времени.
-    #[error("Неверный формат времени: {0}")]
+    /// Invalid time string format.
+    #[error("Invalid time format: {0}")]
     InvalidFormat(String),
-    /// Значение времени вне допустимого диапазона.
-    #[error("Время вне допустимого диапазона")]
+    /// Time value out of range.
+    #[error("Time out of range")]
     OutOfRange,
-    /// Отрицательное значение времени.
-    #[error("Отрицательное время сна")]
+    /// Negative time value.
+    #[error("Negative sleep time")]
     NegativeTime,
 }
 
-/// Представление времени сна.
-///
-/// Структура SleepTime содержит время в секундах в виде числа с плавающей точкой.
+/// Represents sleep time internally.
+/// Stores time in seconds as a floating-point number.
 #[derive(Debug, Clone, Copy)]
 pub struct SleepTime {
     seconds: f64,
 }
 
 impl SleepTime {
-    /// Преобразует SleepTime в Duration с защитой от переполнения.
-    ///
-    /// Происходит разделение секунд и наносекунд, с корректировкой при переполнении наносекунд.
-    /// Отрицательные значения времени преобразуются в положительные.
-    ///
-    /// # Возвращаемое значение
-    /// Возвращает Duration, соответствующий значению SleepTime.
-    ///
-    /// # Пример
-    /// ```
-    /// let t = SleepTime { seconds: 1.5 };
-    /// let d = t.to_duration();
-    /// // d будет эквивалентно 1.5 секундам
-    /// ```
+    /// Converts `SleepTime` to `Duration`, handling potential overflow.
     pub fn to_duration(self) -> Duration {
         let seconds = self.seconds.abs();
         let secs = seconds.trunc() as u64;
         let nanos = (seconds.fract() * 1_000_000_000.0).round() as u32;
 
+        // Adjust for potential floating-point inaccuracies near the second boundary
         let (secs, nanos) = if nanos >= 1_000_000_000 {
             (secs.saturating_add(1), 0)
         } else {
@@ -89,13 +52,7 @@ impl SleepTime {
 }
 
 impl From<u64> for SleepTime {
-    /// Преобразует значение типа u64, рассматриваемое как миллисекунды, в SleepTime.
-    ///
-    /// # Пример
-    /// ```
-    /// // 2000 миллисекунд преобразуются в 2 секунды.
-    /// let t: SleepTime = 2000u64.into();
-    /// ```
+    /// Converts milliseconds (`u64`) to `SleepTime`.
     fn from(ms: u64) -> Self {
         SleepTime {
             seconds: ms as f64 / 1000.0,
@@ -104,14 +61,7 @@ impl From<u64> for SleepTime {
 }
 
 impl From<Duration> for SleepTime {
-    /// Преобразует тип Duration в SleepTime.
-    ///
-    /// # Пример
-    /// ```
-    /// let d = std::time::Duration::from_secs(5);
-    /// let t: SleepTime = d.into();
-    /// // t.seconds будет равно 5.0
-    /// ```
+    /// Converts `Duration` to `SleepTime`.
     fn from(d: Duration) -> Self {
         SleepTime {
             seconds: d.as_secs_f64(),
@@ -120,48 +70,26 @@ impl From<Duration> for SleepTime {
 }
 
 impl From<f64> for SleepTime {
-    /// Преобразует значение f64, представляющее секунды, в SleepTime.
-    ///
-    /// # Пример
-    /// ```
-    /// let t: SleepTime = 3.5f64.into();
-    /// // t.seconds будет равно 3.5
-    /// ```
+    /// Converts seconds (`f64`) to `SleepTime`.
     fn from(secs: f64) -> Self {
         SleepTime { seconds: secs }
     }
 }
 
 impl From<&str> for SleepTime {
-    /// Преобразует строку в SleepTime, используя реализацию FromStr.
-    ///
-    /// # Пример
-    /// ```
-    /// let t: SleepTime = "2s".into();
-    /// // t.seconds будет равно 2.0
-    /// ```
+    /// Converts string slice to `SleepTime` using `FromStr`.
+    /// Panics on parsing errors (use `safe_sleep` for fallible parsing).
     fn from(s: &str) -> Self {
-        // Сохраняем поведение, но используем более безопасное сообщение об ошибке
         s.parse()
-            .unwrap_or_else(|_| panic!("Не удалось преобразовать строку '{}' в SleepTime", s))
+            .unwrap_or_else(|_| panic!("Failed to convert string '{}' to SleepTime", s))
     }
 }
 
 impl FromStr for SleepTime {
     type Err = SleepError;
 
-    /// Парсит строку с указанием единиц измерения:
-    /// - ns: наносекунды
-    /// - ms: миллисекунды
-    /// - s: секунды (по умолчанию)
-    /// - m: минуты
-    /// - h: часы
-    ///
-    /// # Пример
-    /// ```
-    /// // Парсинг строки "1.5h" вернёт SleepTime с соответствующим значением в секундах.
-    /// let t = SleepTime::from_str("1.5h").unwrap();
-    /// ```
+    /// Parses a time string with optional units (ns, ms, s, m, h).
+    /// Defaults to seconds if no unit is provided.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim().to_lowercase();
         let (num_part, unit) = s.split_at(
@@ -192,19 +120,9 @@ impl FromStr for SleepTime {
     }
 }
 
-/// Пытается выполнить функцию sleep с заданным временем, возвращая ошибку в случае неудачи.
+/// Attempts to sleep for the given time, returning an error on failure.
 ///
-/// Функция принимает аргумент, который можно преобразовать в SleepTime.
-/// Если время отрицательное, возвращается ошибка NegativeTime, иначе выполняется sleep.
-///
-/// # Возвращаемое значение
-/// Возвращает Ok(()) при успешном выполнении сна или Err(SleepError) при ошибке.
-///
-/// # Пример
-/// ```
-/// // Попытка выполнить сон в 2 секунды
-/// safe_sleep("2s").unwrap();
-/// ```
+/// Returns `Err(SleepError::NegativeTime)` if the time is negative.
 pub fn safe_sleep<T: Into<SleepTime>>(time: T) -> Result<(), SleepError> {
     let sleep_time = time.into();
 

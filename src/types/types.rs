@@ -3,22 +3,22 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use std::any::Any;
 
-/// Regex for removing namespace qualifiers
+/// Regex to remove namespace qualifiers.
 static QUALIFIER_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"([a-zA-Z_][a-zA-Z0-9_]*::)+").expect("Failed to compile qualifier regex")
 });
 
-/// Simplifies a non-generic type by removing namespace qualifiers
+/// Removes namespace qualifiers from a non-generic type string.
 pub fn simplify_nonlist_type(type_str: &str) -> Result<String> {
     Ok(type_str.split("::").last().unwrap_or(type_str).to_string())
 }
 
-/// Gets the type name of a value using std::any
+/// Gets the type name of a value using `std::any::type_name`.
 pub fn get_type<T: Any>(_: &T) -> String {
     std::any::type_name::<T>().to_owned()
 }
 
-/// Checks if a type string represents a generic or collection type
+/// Checks if a type string appears to be a generic or collection (like `Vec<T>` or `[T]`).
 pub fn is_list_like(type_str: &str) -> bool {
     if type_str.contains('<') || type_str.contains('>') {
         return true;
@@ -28,7 +28,7 @@ pub fn is_list_like(type_str: &str) -> bool {
     trimmed.starts_with('[') && trimmed.ends_with(']')
 }
 
-/// Simplifies a type string by removing namespace qualifiers, handling generics
+/// Removes namespace qualifiers from a type string, preserving generics structure.
 pub fn simplify_type(type_str: &str) -> Result<String> {
     if !is_list_like(type_str) {
         return simplify_nonlist_type(type_str);
