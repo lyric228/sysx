@@ -1,12 +1,12 @@
 use crate::{Result, SysxError};
 
-/// Возвращает строку, содержащую только hex-символы из входной строки.
+/// Returns a string containing only hex characters from the input.
 pub fn clean_hex(input: &str) -> String {
     input.chars().filter(|c| c.is_ascii_hexdigit()).collect()
 }
 
-/// Преобразует hex-строку в UTF-8 строку.
-/// Поддерживаются строки с разделителями или без них.
+/// Converts a hex string (with or without separators) to a UTF-8 string.
+/// Returns an error if the hex string has odd length or invalid UTF-8.
 pub fn hex_to_str(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
 
@@ -27,7 +27,7 @@ pub fn hex_to_str(hex: &str) -> Result<String> {
     String::from_utf8(bytes).map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
 }
 
-/// Преобразует строку в шестнадцатеричный формат (байт за байтом, разделённые пробелами).
+/// Converts a string to a space-separated hexadecimal string.
 pub fn str_to_hex(text: &str) -> String {
     text.as_bytes()
         .iter()
@@ -36,7 +36,7 @@ pub fn str_to_hex(text: &str) -> String {
         .join(" ")
 }
 
-/// Проверяет, что строка содержит только hex-символы и пробельные символы.
+/// Checks if a string contains only hex characters and whitespace.
 pub fn is_valid_hex(hex: &str) -> bool {
     !hex.is_empty()
         && hex
@@ -44,13 +44,14 @@ pub fn is_valid_hex(hex: &str) -> bool {
             .all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
 }
 
-/// Проверяет hex-строку без пробелов на чётное количество символов.
+/// Checks if a whitespace-cleaned hex string has an even length and consists only of hex digits.
 pub fn is_valid_hex_strict(hex: &str) -> bool {
     let trimmed: String = hex.chars().filter(|c| !c.is_whitespace()).collect();
     !trimmed.is_empty() && trimmed.len() % 2 == 0 && trimmed.chars().all(|c| c.is_ascii_hexdigit())
 }
 
-/// Форматирует строку, оставляя только hex-символы и разделяя байты пробелами.
+/// Formats a string containing hex digits into a space-separated hex string.
+/// Returns an error if the cleaned hex string has odd length or is empty.
 pub fn fmt_hex(hex: &str) -> Result<String> {
     let cleaned = clean_hex(hex);
     if cleaned.is_empty() || cleaned.len() % 2 != 0 {

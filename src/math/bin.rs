@@ -1,11 +1,12 @@
 use crate::{Result, SysxError};
 
-/// Возвращает строку, содержащую только бинарные символы (0 и 1)
+/// Returns a string containing only binary characters ('0' and '1').
 pub fn clean_bin(input: &str) -> String {
     input.chars().filter(|c| *c == '0' || *c == '1').collect()
 }
 
-/// Преобразует бинарную строку в UTF-8 строку
+/// Converts a binary string to a UTF-8 string.
+/// The binary string must have a length that is a multiple of 8 after cleaning.
 pub fn bin_to_str(bin: &str) -> Result<String> {
     let cleaned = clean_bin(bin);
 
@@ -27,7 +28,7 @@ pub fn bin_to_str(bin: &str) -> Result<String> {
     String::from_utf8(bytes).map_err(|e| SysxError::InvalidSyntax(format!("Invalid UTF-8: {}", e)))
 }
 
-/// Преобразует строку в бинарный формат (байт за байтом, разделённые пробелами)
+/// Converts a string to a binary string (byte by byte, separated by spaces).
 pub fn str_to_bin(text: &str) -> String {
     text.as_bytes()
         .iter()
@@ -36,7 +37,7 @@ pub fn str_to_bin(text: &str) -> String {
         .join(" ")
 }
 
-/// Проверяет что строка содержит только 0, 1 и пробельные символы
+/// Checks if a string contains only '0', '1', and whitespace characters.
 pub fn is_valid_bin(bin: &str) -> bool {
     !bin.is_empty()
         && bin
@@ -44,13 +45,24 @@ pub fn is_valid_bin(bin: &str) -> bool {
             .all(|c| c.is_whitespace() || c == '0' || c == '1')
 }
 
-/// Строгая проверка бинарной строки (без пробелов и длина кратна 8)
+/// Strictly validates a binary string: non-empty, contains only '0' and '1' (no whitespace), and length is a multiple of 8.
 pub fn is_valid_bin_strict(bin: &str) -> bool {
-    let trimmed: String = bin.chars().filter(|c| !c.is_whitespace()).collect();
-    !trimmed.is_empty() && trimmed.len() % 8 == 0 && trimmed.chars().all(|c| c == '0' || c == '1')
+    let mut count = 0;
+    for c in bin.chars() {
+        if c.is_whitespace() {
+            continue;
+        }
+        if c == '0' || c == '1' {
+            count += 1;
+        } else {
+            return false;
+        }
+    }
+    count > 0 && count % 8 == 0
 }
 
-/// Форматирует бинарную строку, разделяя байты пробелами
+/// Formats a binary string by adding spaces between bytes.
+/// Input string must contain only '0' and '1' (ignoring whitespace) and have a length multiple of 8 after cleaning.
 pub fn fmt_bin(bin: &str) -> Result<String> {
     let cleaned = clean_bin(bin);
     if cleaned.is_empty() || cleaned.len() % 8 != 0 {
@@ -60,11 +72,10 @@ pub fn fmt_bin(bin: &str) -> Result<String> {
     }
 
     let formatted = cleaned
-        .chars()
-        .collect::<Vec<char>>()
+        .as_bytes()
         .chunks(8)
-        .map(|chunk| chunk.iter().collect::<String>())
-        .collect::<Vec<String>>()
+        .map(|chunk| std::str::from_utf8(chunk).expect("Cleaned binary string should be valid UTF-8"))
+        .collect::<Vec<&str>>()
         .join(" ");
 
     Ok(formatted)
