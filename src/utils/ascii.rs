@@ -2,9 +2,10 @@ use crate::types::error::SysxError;
 use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
 use std::{io, path::Path};
 
-/// Minimal character set (~10 characters).
+/// Simple character set (~10 characters).
 pub const CHAR_SET_SIMPLE: &str = " .'`-_:;+=*%#@";
-/// Medium density character set (~25 characters).
+
+/// Medium character set (~25 characters).
 pub const CHAR_SET_MEDIUM: &str = " .'`-_:,;^!i?l~+/*()[]{}<>%#&$@";
 
 /// Detailed character set (~50 characters).
@@ -157,4 +158,4 @@ pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
         let g = channels[1] as f32 / 255.0;
         let b = channels[2] as f32 / 255.0;
     (0.2126 * r + 0.7152 * g + 0.0722 * b).min(1.0)
-    }
+}
