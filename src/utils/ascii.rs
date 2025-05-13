@@ -2,19 +2,19 @@ use crate::types::error::SysxError;
 use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
 use std::{io, path::Path};
 
-/// Character sets for ASCII art, ordered lightest to darkest.
-pub const CHAR_SET_VERY_DETAILED: &str =
-    " `-.,'_:;^r*?/\\|()[]{}1LctvunxrjfmewpqaokSZEPX69RdHBMN#WQ@";
+/// Minimal character set (~12 characters).
+pub const CHAR_SET_SIMPLE: &str = " .'`-_:;+=*%#@";
+/// Medium density character set (~29 characters).
+pub const CHAR_SET_MEDIUM: &str = " .'`-_:,;^!i?l~+/*()[]{}<>%#&$@";
 
-/// Detailed character set (70 characters).
-pub const CHAR_SET_DETAILED: &str =
-    " `.'\",:;!ilI><~+_-?][}{)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
+/// Detailed character set (~56 characters).
+pub const CHAR_SET_DETAILED: &str = " .'-,_`\":;!~*^=+|?/()[]{}<>ilrcvunxzjftmwqpdbaohk#$&%@";
 
-/// Medium density character set (11 characters).
-pub const CHAR_SET_MEDIUM: &str = " .,:;-+=*#%@";
+/// Very detailed character set (~94 characters).
+pub const CHAR_SET_VERY_DETAILED: &str = " `.-,:_`';^!|*\\/()[]{}?i~+><1lIctrJFnvuxLzsfjymeowqpkSadZbghVCE753YUROXG0PDK26948HQMNWB&#@";
 
-/// Minimal character set (7 characters).
-pub const CHAR_SET_SIMPLE: &str = " .:*#=@";
+/// Full printable ASCII character set, approximately ordered by brightness (~100 characters).
+pub const CHAR_SET_FULL_ASCII: &str = " `.'`^\",:;Il!i~+_-?][}{)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 /// Configuration for ASCII art conversion.
 pub struct AsciiArtConfig {
