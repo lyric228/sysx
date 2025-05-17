@@ -3,9 +3,6 @@ name = "sysx"
 version = "0.7.0"
 edition = "2024"
 
-[lib]
-doctest = false
-
 [dependencies]
 rand = "0.9.1"
 image = "0.25.6"
