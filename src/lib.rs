@@ -15,6 +15,7 @@ pub mod math {
 pub mod utils {
     pub mod ascii;
     pub mod rand;
+    pub mod term;
 }
 pub mod types {
     pub mod error;
