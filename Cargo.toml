@@ -1,7 +1,10 @@
 [package]
 name = "sysx"
-version = "0.7.1"
+version = "0.7.0"
 edition = "2024"
+
+[lib]
+doctest = false
 
 [dependencies]
 rand = "0.9.1"
@@ -20,4 +23,4 @@ default-features = false
 features = ["std", "unicode-perl"]
 
 [dev-dependencies]
-tempfile = "3.20.0"
+tempfile = "3.19.1"
