@@ -36,7 +36,7 @@ pub fn run(command: &str) -> Result<Output> {
     let output = slrun(command)?;
 
     let output_str = String::from_utf8_lossy(&output.stdout);
-    println!("{}", output_str);
+    println!("{output_str}");
 
     Ok(output)
 }

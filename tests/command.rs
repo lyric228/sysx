@@ -10,7 +10,7 @@ fn test_command_execution() {
 
     assert!(output.status.success(), "Command failed: {:?}", output.status);
     assert_eq!(stdout.trim(), "test");
-    assert!(stderr.is_empty(), "Stderr was not empty: {}", stderr);
+    assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 
     let res = slrun("nonexistentcommand");
     assert!(matches!(res.unwrap_err(), SysxError::AnyhowError(_)), "Expected AnyhowError for nonexistent command");
@@ -22,7 +22,7 @@ fn test_command_execution() {
 
     assert!(output.status.success(), "Command failed: {:?}", output.status);
     assert_eq!(stdout.trim(), "test"); // Check stdout from the returned Output
-    assert!(stderr.is_empty(), "Stderr was not empty: {}", stderr);
+    assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn test_command_macros() {
 
     assert!(output.status.success(), "Macro command failed: {:?}", output.status);
     assert_eq!(stdout.trim(), "hello world");
-    assert!(stderr.is_empty(), "Stderr was not empty: {}", stderr);
+    assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 
 
     // runf
@@ -46,5 +46,5 @@ fn test_command_macros() {
 
     assert!(output.status.success(), "Macro command failed: {:?}", output.status);
     assert_eq!(stdout.trim(), "hello world"); // Check stdout from the returned Output
-    assert!(stderr.is_empty(), "Stderr was not empty: {}", stderr);
+    assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 }
