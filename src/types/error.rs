@@ -78,10 +78,6 @@ pub enum SysxError {
     #[error("Path strip prefix error: {0}")]
     StripPrefixError(#[from] std::path::StripPrefixError),
 
-    /// Mutex poison error.
-    #[error("Mutex poisoned: {0}")]
-    MutexPoison(String),
-
     /// Serialization error.
     #[error("Serialization error: {0}")]
     SerializationError(String),
@@ -101,22 +97,6 @@ pub enum TimeError {
     /// Negative time duration specified.
     #[error("Negative time duration specified")]
     NegativeDuration,
-}
-
-impl
-    From<
-        std::sync::PoisonError<
-            std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>,
-        >,
-    > for SysxError
-{
-    fn from(
-        err: std::sync::PoisonError<
-            std::sync::MutexGuard<'_, std::collections::HashMap<String, String>>,
-        >,
-    ) -> Self {
-        SysxError::MutexPoison(format!("Mutex consistency error: {err}"))
-    }
 }
 
 /// Result type for sysx library functions.
