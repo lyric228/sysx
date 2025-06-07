@@ -1,5 +1,5 @@
 use std::process::{Command, Output, Stdio};
-
+use std::io;
 use anyhow::Context;
 
 use crate::{Result, SysxError};
@@ -65,7 +65,7 @@ pub use runf;
 
 /// Reads a line from stdin into the provided buffer, removing the newline.
 pub fn input_buf(buffer: &mut String) -> Result<()> {
-    std::io::stdin()
+    io::stdin()
         .read_line(buffer)
         .map_err(|e| SysxError::AnyhowError(anyhow::anyhow!("Failed to read line: {}", e)))
         .map(|_| {
