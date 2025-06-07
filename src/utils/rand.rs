@@ -1,7 +1,11 @@
-use std::cmp::Ordering;
-use std::sync::Arc;
-use rand::distr::{Alphanumeric, Uniform, uniform::SampleUniform};
-use rand::{Rng, rng};
+use std::{cmp::Ordering, sync::Arc};
+
+use rand::{
+    Rng,
+    distr::{Alphanumeric, Uniform, uniform::SampleUniform},
+    rng,
+};
+
 use crate::{Error, Result};
 
 /// Generates a random value within the inclusive range [min, max].

@@ -1,4 +1,4 @@
-use sysx::{math::bin::*, math::hex::*};
+use sysx::math::{bin::*, hex::*};
 
 #[test]
 fn test_binary_conversions() {

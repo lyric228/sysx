@@ -27,15 +27,15 @@ pub enum SysxError {
         "Type validation error: expected {:?}, found {:?}{:?}",
         expected,
         actual,
-        context,
+        context
     )]
     ValidationError {
         /// Expected type.
         expected: String,
         /// Actual type.
-        actual: String,
+        actual:   String,
         /// Additional context.
-        context: Option<String>,
+        context:  Option<String>,
     },
 
     /// Unsupported type construct.

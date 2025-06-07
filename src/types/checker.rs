@@ -1,7 +1,9 @@
-use crate::Result;
+use std::any::Any;
+
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::any::Any;
+
+use crate::Result;
 
 /// Regex to remove namespace qualifiers.
 static QUALIFIER_RE: Lazy<Regex> = Lazy::new(|| {

@@ -1,12 +1,15 @@
-use std::fs;
-use std::path::PathBuf;
-
-use sysx::utils::ascii::{
-    CHAR_SET_DETAILED, CHAR_SET_MEDIUM, CHAR_SET_SIMPLE, image_to_ascii,
-    image_to_ascii_configurable, pixel_brightness, AsciiArtConfig,
-};
+use std::{fs, path::PathBuf};
 
 use image::{Rgb, Rgba, imageops::FilterType};
+use sysx::utils::ascii::{
+    AsciiArtConfig,
+    CHAR_SET_DETAILED,
+    CHAR_SET_MEDIUM,
+    CHAR_SET_SIMPLE,
+    image_to_ascii,
+    image_to_ascii_configurable,
+    pixel_brightness,
+};
 fn create_test_image(path: &PathBuf) {
     let parent = path.parent().unwrap();
     fs::create_dir_all(parent).expect("Failed to create test directory");
@@ -47,9 +50,18 @@ fn test_image_to_ascii_default_charset() {
     let medium = image_to_ascii(&test_image, 20, 10, CHAR_SET_MEDIUM).unwrap();
     let simple = image_to_ascii(&test_image, 20, 10, CHAR_SET_SIMPLE).unwrap();
 
-    assert!(!detailed.is_empty(), "Detailed charset output should not be empty");
-    assert!(!medium.is_empty(), "Medium charset output should not be empty");
-    assert!(!simple.is_empty(), "Simple charset output should not be empty");
+    assert!(
+        !detailed.is_empty(),
+        "Detailed charset output should not be empty"
+    );
+    assert!(
+        !medium.is_empty(),
+        "Medium charset output should not be empty"
+    );
+    assert!(
+        !simple.is_empty(),
+        "Simple charset output should not be empty"
+    );
 
     assert!(detailed.contains('\n'), "Output should contain newlines");
     let lines: Vec<&str> = detailed.lines().collect();
@@ -97,17 +109,37 @@ fn test_different_image_dimensions() {
     let medium = image_to_ascii(&test_image, 30, 15, CHAR_SET_SIMPLE).unwrap();
     let large = image_to_ascii(&test_image, 50, 25, CHAR_SET_SIMPLE).unwrap();
     assert_eq!(small.lines().count(), 5, "Small output should have 5 lines");
-    assert_eq!(medium.lines().count(), 15, "Medium output should have 15 lines");
-    assert_eq!(large.lines().count(), 25, "Large output should have 25 lines");
+    assert_eq!(
+        medium.lines().count(),
+        15,
+        "Medium output should have 15 lines"
+    );
+    assert_eq!(
+        large.lines().count(),
+        25,
+        "Large output should have 25 lines"
+    );
 
     if let Some(first_line) = small.lines().next() {
-        assert_eq!(first_line.chars().count(), 10, "Small line should have 10 chars");
+        assert_eq!(
+            first_line.chars().count(),
+            10,
+            "Small line should have 10 chars"
+        );
     }
     if let Some(first_line) = medium.lines().next() {
-        assert_eq!(first_line.chars().count(), 30, "Medium line should have 30 chars");
+        assert_eq!(
+            first_line.chars().count(),
+            30,
+            "Medium line should have 30 chars"
+        );
     }
     if let Some(first_line) = large.lines().next() {
-        assert_eq!(first_line.chars().count(), 50, "Large line should have 50 chars");
+        assert_eq!(
+            first_line.chars().count(),
+            50,
+            "Large line should have 50 chars"
+        );
     }
 }
 
@@ -118,7 +150,10 @@ fn test_empty_charset_error() {
     create_test_image(&test_image);
 
     let result_str = image_to_ascii(&test_image, 20, 10, "");
-    assert!(result_str.is_err(), "Str charset: Error expected for empty charset");
+    assert!(
+        result_str.is_err(),
+        "Str charset: Error expected for empty charset"
+    );
     if let Err(err) = result_str {
         let err_string = format!("{err:?}");
         assert!(
@@ -155,7 +190,10 @@ fn test_image_to_ascii_configurable_aspect_ratio() {
     println!("lines_aspect_1: {lines_aspect_1}");
     println!("lines_aspect_2: {lines_aspect_2}");
 
-    assert!(lines_aspect_2 < lines_aspect_1, "Lines with aspect 2.0 should be less than with 1.0");
+    assert!(
+        lines_aspect_2 < lines_aspect_1,
+        "Lines with aspect 2.0 should be less than with 1.0"
+    );
     fs::write(test_dir.join("output/aspect_ratio_1.txt"), &result_aspect_1).unwrap();
     fs::write(test_dir.join("output/aspect_ratio_2.txt"), &result_aspect_2).unwrap();
 }
@@ -179,8 +217,15 @@ fn test_image_to_ascii_configurable_resize_filter() {
     };
     let result_nearest = image_to_ascii_configurable(&test_image, &config_nearest).unwrap();
 
-    assert_ne!(result_lanczos3, result_nearest, "Outputs with different filters should be different");
+    assert_ne!(
+        result_lanczos3, result_nearest,
+        "Outputs with different filters should be different"
+    );
 
-    fs::write(test_dir.join("output/resize_lanczos3.txt"), &result_lanczos3).unwrap();
+    fs::write(
+        test_dir.join("output/resize_lanczos3.txt"),
+        &result_lanczos3,
+    )
+    .unwrap();
     fs::write(test_dir.join("output/resize_nearest.txt"), &result_nearest).unwrap();
 }

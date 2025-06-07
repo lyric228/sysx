@@ -1,5 +1,7 @@
 use std::process::{Command, Output, Stdio};
+
 use anyhow::Context;
+
 use crate::{Result, SysxError};
 
 /// Executes a command silently and returns its Output.

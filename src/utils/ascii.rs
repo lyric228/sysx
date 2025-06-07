@@ -1,6 +1,8 @@
-use crate::types::error::SysxError;
-use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
 use std::{io, path::Path};
+
+use image::{DynamicImage, GenericImageView, Pixel, imageops::FilterType};
+
+use crate::types::error::SysxError;
 
 /// Simple character set (~10 characters).
 pub const CHAR_SET_SIMPLE: &str = " .'`-_:;+=*%#@";
@@ -43,36 +45,33 @@ impl Default for AsciiArtConfig {
     }
 }
 
-fn _image_to_ascii_core(
-    img: DynamicImage,
-    config: &AsciiArtConfig,
-) -> Result<String, SysxError> {
+fn _image_to_ascii_core(img: DynamicImage, config: &AsciiArtConfig) -> Result<String, SysxError> {
     if config.char_set.is_empty() {
         return Err(SysxError::ValidationError {
             expected: "Non-empty character set".to_string(),
-            actual: "Empty character set".to_string(),
-            context: Some("ASCII conversion requires at least one character".to_string()),
+            actual:   "Empty character set".to_string(),
+            context:  Some("ASCII conversion requires at least one character".to_string()),
         });
     }
     if config.aspect_ratio_compensation <= 0.0 {
         return Err(SysxError::ValidationError {
             expected: "Positive aspect ratio compensation".to_string(),
-            actual: format!("Compensation factor: {}", config.aspect_ratio_compensation),
-            context: Some("Aspect ratio compensation must be greater than 0".to_string()),
+            actual:   format!("Compensation factor: {}", config.aspect_ratio_compensation),
+            context:  Some("Aspect ratio compensation must be greater than 0".to_string()),
         });
     }
     if config.width == 0 {
         return Err(SysxError::ValidationError {
             expected: "Positive width".to_string(),
-            actual: "Width: 0".to_string(),
-            context: Some("Target width must be greater than 0".to_string()),
+            actual:   "Width: 0".to_string(),
+            context:  Some("Target width must be greater than 0".to_string()),
         });
     }
-     if img.height() == 0 {
+    if img.height() == 0 {
         return Err(SysxError::ValidationError {
             expected: "Non-zero image height".to_string(),
-            actual: "Image height: 0".to_string(),
-            context: Some("Input image height cannot be zero".to_string()),
+            actual:   "Image height: 0".to_string(),
+            context:  Some("Input image height cannot be zero".to_string()),
         });
     }
 
@@ -82,14 +81,9 @@ fn _image_to_ascii_core(
         (config.width as f32 / aspect_ratio / config.aspect_ratio_compensation).round() as u32;
     let scaled_height = std::cmp::max(1, std::cmp::min(calculated_scaled_height, config.height));
 
-    let resized_img = img.resize_exact(
-        scaled_width,
-        scaled_height,
-        config.resize_filter,
-    );
+    let resized_img = img.resize_exact(scaled_width, scaled_height, config.resize_filter);
 
-    let mut result =
-        String::with_capacity(((scaled_width + 1) * scaled_height) as usize);
+    let mut result = String::with_capacity(((scaled_width + 1) * scaled_height) as usize);
     let num_chars = config.char_set.len();
     let num_chars_f = num_chars as f32;
 
@@ -113,18 +107,17 @@ fn _image_to_ascii_core(
 }
 
 /// Converts an image to ASCII art using a given configuration.
-pub fn image_to_ascii_configurable<P>(
-    path: P,
-    config: &AsciiArtConfig,
-) -> Result<String, SysxError>
+pub fn image_to_ascii_configurable<P>(path: P, config: &AsciiArtConfig) -> Result<String, SysxError>
 where
     P: AsRef<Path>,
 {
     let img_path = path.as_ref();
     let img = image::open(img_path).map_err(|e| {
-        SysxError::IoError(io::Error::other(
-            format!("Could not open or decode image file at path '{}': {}", img_path.display(), e),
-        ))
+        SysxError::IoError(io::Error::other(format!(
+            "Could not open or decode image file at path '{}': {}",
+            img_path.display(),
+            e
+        )))
     })?;
     _image_to_ascii_core(img, config)
 }
@@ -154,8 +147,8 @@ where
 /// Calculates the brightness of a pixel.
 pub fn pixel_brightness<P: Pixel<Subpixel = u8>>(pixel: P) -> f32 {
     let channels = pixel.to_rgb();
-        let r = channels[0] as f32 / 255.0;
-        let g = channels[1] as f32 / 255.0;
-        let b = channels[2] as f32 / 255.0;
+    let r = channels[0] as f32 / 255.0;
+    let g = channels[1] as f32 / 255.0;
+    let b = channels[2] as f32 / 255.0;
     (0.2126 * r + 0.7152 * g + 0.0722 * b).min(1.0)
 }

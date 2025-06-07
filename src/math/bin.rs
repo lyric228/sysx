@@ -74,7 +74,9 @@ pub fn fmt_bin(bin: &str) -> Result<String> {
     let formatted = cleaned
         .as_bytes()
         .chunks(8)
-        .map(|chunk| std::str::from_utf8(chunk).expect("Cleaned binary string should be valid UTF-8"))
+        .map(|chunk| {
+            std::str::from_utf8(chunk).expect("Cleaned binary string should be valid UTF-8")
+        })
         .collect::<Vec<&str>>()
         .join(" ");
 

@@ -1,4 +1,5 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
+
 use sysx::net::{ipv4::*, ipv6::*};
 
 #[test]

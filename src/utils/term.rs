@@ -1,4 +1,4 @@
-use terminal_size::{terminal_size, Height, Width};
+use terminal_size::{Height, Width, terminal_size};
 
 /// Get terminal width and height (x, y)
 pub fn txy() -> Option<(u16, u16)> {

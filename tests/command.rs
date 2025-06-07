@@ -1,5 +1,6 @@
-use sysx::{SysxError, io::cmd::*};
-use std::string::String; // Import String
+use std::string::String;
+
+use sysx::{SysxError, io::cmd::*}; // Import String
 
 #[test]
 fn test_command_execution() {
@@ -8,19 +9,30 @@ fn test_command_execution() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    assert!(output.status.success(), "Command failed: {:?}", output.status);
+    assert!(
+        output.status.success(),
+        "Command failed: {:?}",
+        output.status
+    );
     assert_eq!(stdout.trim(), "test");
     assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 
     let res = slrun("nonexistentcommand");
-    assert!(matches!(res.unwrap_err(), SysxError::AnyhowError(_)), "Expected AnyhowError for nonexistent command");
+    assert!(
+        matches!(res.unwrap_err(), SysxError::AnyhowError(_)),
+        "Expected AnyhowError for nonexistent command"
+    );
 
     // run
     let output = run("echo test").unwrap(); // run prints stdout internally
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    assert!(output.status.success(), "Command failed: {:?}", output.status);
+    assert!(
+        output.status.success(),
+        "Command failed: {:?}",
+        output.status
+    );
     assert_eq!(stdout.trim(), "test"); // Check stdout from the returned Output
     assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 }
@@ -34,17 +46,24 @@ fn test_command_macros() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    assert!(output.status.success(), "Macro command failed: {:?}", output.status);
+    assert!(
+        output.status.success(),
+        "Macro command failed: {:?}",
+        output.status
+    );
     assert_eq!(stdout.trim(), "hello world");
     assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
-
 
     // runf
     let output = runf!("echo hello {}", arg).unwrap(); // runf calls run, which prints stdout
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    assert!(output.status.success(), "Macro command failed: {:?}", output.status);
+    assert!(
+        output.status.success(),
+        "Macro command failed: {:?}",
+        output.status
+    );
     assert_eq!(stdout.trim(), "hello world"); // Check stdout from the returned Output
     assert!(stderr.is_empty(), "Stderr was not empty: {stderr}");
 }
