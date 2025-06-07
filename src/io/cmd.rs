@@ -1,5 +1,8 @@
-use std::process::{Command, Output, Stdio};
-use std::io;
+use std::{
+    io,
+    process::{Command, Output, Stdio},
+};
+
 use anyhow::Context;
 
 use crate::{Result, SysxError};

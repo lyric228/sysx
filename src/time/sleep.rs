@@ -132,7 +132,7 @@ impl FromStr for SleepTime {
         // Parse number
         let num: f64 = num_part
             .parse()
-            .map_err(|_| SleepError::InvalidFormat(format!("invalid number: '{}'", num_part)))?;
+            .map_err(|_| SleepError::InvalidFormat(format!("invalid number: '{num_part}'")))?;
 
         // Handle negative values
         if num < 0.0 {
@@ -149,8 +149,7 @@ impl FromStr for SleepTime {
             "h" | "hour" | "hours" => 3600.0 * 1_000_000_000.0,
             _ => {
                 return Err(SleepError::InvalidFormat(format!(
-                    "unknown unit: '{}'",
-                    unit_part
+                    "unknown unit: '{unit_part}'"
                 )));
             }
         };
