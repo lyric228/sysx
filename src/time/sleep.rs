@@ -1,5 +1,7 @@
 use std::str::FromStr;
 use std::thread;
+use std::convert::TryFrom;
+use std::num::TryFromIntError;
 pub use std::time::Duration;
 
 use thiserror::Error;
@@ -7,129 +9,176 @@ use thiserror::Error;
 /// Suspends the current thread for the specified duration.
 ///
 /// Accepts `u64` (ms), `f64` (s), `&str` ("100ms", "2s"), or `Duration`.
-pub fn sleep<T: Into<SleepTime>>(time: T) {
-    let duration = time.into().to_duration();
-    thread::sleep(duration);
+/// Returns `Err(SleepError)` for invalid inputs instead of panicking.
+pub fn sleep<T: TryInto<SleepTime>>(time: T) -> Result<(), SleepError>
+where
+    T::Error: Into<SleepError>,
+{
+    let sleep_time = time.try_into().map_err(Into::into)?;
+    thread::sleep(sleep_time.to_duration());
+    Ok(())
 }
 
 /// Possible errors when parsing sleep time.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq)]
 pub enum SleepError {
-    /// Invalid time string format.
-    #[error("Invalid time format: {0}")]
+    /// Invalid time string format
+    #[error("Invalid time format: '{0}'")]
     InvalidFormat(String),
-    /// Time value out of range.
-    #[error("Time out of range")]
-    OutOfRange,
-    /// Negative time value.
-    #[error("Negative sleep time")]
-    NegativeTime,
+    /// Time value out of range
+    #[error("Time value out of range: {0}")]
+    OutOfRange(String),
+    /// Negative time value
+    #[error("Negative sleep time: {0}")]
+    NegativeTime(String),
+    /// Integer conversion error
+    #[error("Integer conversion error: {0}")]
+    IntConversion(#[from] TryFromIntError),
 }
 
-/// Represents sleep time internally.
-/// Stores time in seconds as a floating-point number.
-#[derive(Debug, Clone, Copy)]
+/// Represents sleep time internally with nanosecond precision
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SleepTime {
-    seconds: f64,
+    nanoseconds: u128,
 }
 
 impl SleepTime {
-    /// Converts `SleepTime` to `Duration`, handling potential overflow.
+    /// Creates new SleepTime from nanoseconds
+    pub fn new(nanoseconds: u128) -> Self {
+        Self { nanoseconds }
+    }
+
+    /// Converts to Duration
     pub fn to_duration(self) -> Duration {
-        let seconds = self.seconds.abs();
-        let secs = seconds.trunc() as u64;
-        let nanos = (seconds.fract() * 1_000_000_000.0).round() as u32;
+        Duration::from_nanos(self.nanoseconds as u64)
+    }
 
-        // Adjust for potential floating-point inaccuracies near the second boundary
-        let (secs, nanos) = if nanos >= 1_000_000_000 {
-            (secs.saturating_add(1), 0)
-        } else {
-            (secs, nanos)
-        };
-
-        Duration::new(secs, nanos)
+    /// Total seconds as f64 (lossy conversion)
+    pub fn as_secs_f64(&self) -> f64 {
+        self.nanoseconds as f64 / 1_000_000_000.0
     }
 }
 
+// Safe conversions (infallible)
 impl From<u64> for SleepTime {
-    /// Converts milliseconds (`u64`) to `SleepTime`.
+    /// Converts milliseconds to SleepTime
     fn from(ms: u64) -> Self {
-        SleepTime {
-            seconds: ms as f64 / 1000.0,
+        Self {
+            nanoseconds: ms as u128 * 1_000_000,
         }
     }
 }
 
 impl From<Duration> for SleepTime {
-    /// Converts `Duration` to `SleepTime`.
+    /// Converts Duration to SleepTime
     fn from(d: Duration) -> Self {
-        SleepTime {
-            seconds: d.as_secs_f64(),
+        Self {
+            nanoseconds: d.as_nanos(),
         }
     }
 }
 
-impl From<f64> for SleepTime {
-    /// Converts seconds (`f64`) to `SleepTime`.
-    fn from(secs: f64) -> Self {
-        SleepTime { seconds: secs }
+// Fallible conversions
+impl TryFrom<f64> for SleepTime {
+    type Error = SleepError;
+
+    /// Converts seconds (f64) to SleepTime with error handling
+    fn try_from(secs: f64) -> Result<Self, Self::Error> {
+        if secs < 0.0 {
+            return Err(SleepError::NegativeTime(secs.to_string()));
+        }
+
+        let nanoseconds = secs * 1_000_000_000.0;
+        
+        // Handle overflow and NaN
+        if nanoseconds.is_nan() || nanoseconds.is_infinite() {
+            return Err(SleepError::OutOfRange(secs.to_string()));
+        }
+
+        if nanoseconds > u128::MAX as f64 {
+            return Err(SleepError::OutOfRange(secs.to_string()));
+        }
+
+        Ok(Self {
+            nanoseconds: nanoseconds as u128,
+        })
     }
 }
 
-impl From<&str> for SleepTime {
-    /// Converts string slice to `SleepTime` using `FromStr`.
-    /// Panics on parsing errors (use `safe_sleep` for fallible parsing).
-    fn from(s: &str) -> Self {
+impl TryFrom<&str> for SleepTime {
+    type Error = SleepError;
+
+    /// Parses time strings with units
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
         s.parse()
-            .unwrap_or_else(|_| panic!("Failed to convert string '{s}' to SleepTime"))
     }
 }
 
 impl FromStr for SleepTime {
     type Err = SleepError;
 
-    /// Parses a time string with optional units (ns, ms, s, m, h).
-    /// Defaults to seconds if no unit is provided.
+    /// Parses time strings with flexible format
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim().to_lowercase();
-        let (num_part, unit) = s.split_at(
-            s.find(|c: char| !c.is_numeric() && c != '.')
-                .unwrap_or(s.len()),
-        );
-
-        let num: f64 = num_part
-            .parse()
-            .map_err(|_| SleepError::InvalidFormat(s.to_string()))?;
-
-        let multiplier = match unit {
-            "ns" => 1e-9,
-            "ms" => 1e-3,
-            "m" => 60.0,
-            "h" => 3600.0,
-            "s" | "" => 1.0,
-            _ => return Err(SleepError::InvalidFormat(s.to_string())),
-        };
-
-        if num < 0.0 {
-            return Err(SleepError::NegativeTime);
+        let s = s.trim();
+        if s.is_empty() {
+            return Err(SleepError::InvalidFormat("empty string".into()));
         }
 
-        Ok(SleepTime {
-            seconds: num * multiplier,
+        // Split into numeric and alphabetic parts
+        let num_end = s
+            .find(|c: char| !c.is_ascii_digit() && c != '.' && c != '-' && c != '+')
+            .unwrap_or(s.len());
+        
+        let (num_part, unit_part) = s.split_at(num_end);
+        let unit_part = unit_part.trim().to_lowercase();
+
+        // Parse number
+        let num: f64 = num_part.parse().map_err(|_| {
+            SleepError::InvalidFormat(format!("invalid number: '{}'", num_part))
+        })?;
+
+        // Handle negative values
+        if num < 0.0 {
+            return Err(SleepError::NegativeTime(s.to_string()));
+        }
+
+        // Calculate multiplier
+        let multiplier = match unit_part.as_str() {
+            "" | "s" | "sec" | "secs" => 1_000_000_000.0,
+            "ms" | "msec" => 1_000_000.0,
+            "us" | "usec" => 1_000.0,
+            "ns" | "nsec" => 1.0,
+            "m" | "min" | "mins" => 60.0 * 1_000_000_000.0,
+            "h" | "hour" | "hours" => 3600.0 * 1_000_000_000.0,
+            _ => return Err(SleepError::InvalidFormat(format!("unknown unit: '{}'", unit_part))),
+        };
+
+        let nanoseconds = num * multiplier;
+        
+        // Check for overflow and invalid values
+        if nanoseconds.is_nan() || nanoseconds.is_infinite() {
+            return Err(SleepError::OutOfRange(s.to_string()));
+        }
+        
+        if nanoseconds > u128::MAX as f64 {
+            return Err(SleepError::OutOfRange(s.to_string()));
+        }
+
+        Ok(Self {
+            nanoseconds: nanoseconds as u128,
         })
     }
 }
 
-/// Attempts to sleep for the given time, returning an error on failure.
-///
-/// Returns `Err(SleepError::NegativeTime)` if the time is negative.
-pub fn safe_sleep<T: Into<SleepTime>>(time: T) -> Result<(), SleepError> {
-    let sleep_time = time.into();
-
-    if sleep_time.seconds < 0.0 {
-        return Err(SleepError::NegativeTime);
+// Additional utilities
+impl SleepTime {
+    /// Create from seconds (f64)
+    pub fn from_secs_f64(secs: f64) -> Result<Self, SleepError> {
+        secs.try_into()
     }
-
-    thread::sleep(sleep_time.to_duration());
-    Ok(())
+    
+    /// Create from milliseconds (u64)
+    pub fn from_millis(ms: u64) -> Self {
+        ms.into()
+    }
 }
