@@ -1,4 +1,5 @@
 use crate::{Result, SysxError};
+use crate::math::parity::is_odd;
 
 const HEX_CHARS_UPPER: [u8; 16] = *b"0123456789ABCDEF";
 const HEX_CHARS_LOWER: [u8; 16] = *b"0123456789abcdef";
