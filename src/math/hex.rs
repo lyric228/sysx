@@ -6,7 +6,7 @@ const TO_UPPER_MASK: u8 = 0b11011111;
 const TO_LOWER_MASK: u8 = 0b00100000;
 
 /// Fast conversion of hex string to uppercase
-pub fn to_uppercase_fast(hex: &str) -> String {
+pub fn to_uppercase(hex: &str) -> String {
     let bytes = hex.as_bytes();
     let mut result = String::with_capacity(bytes.len());
     
@@ -26,7 +26,7 @@ pub fn to_uppercase_fast(hex: &str) -> String {
 }
 
 /// Fast conversion of hex string to lowercase
-pub fn to_lowercase_fast(hex: &str) -> String {
+pub fn to_lowercase(hex: &str) -> String {
     let bytes = hex.as_bytes();
     let mut result = String::with_capacity(bytes.len());
     
@@ -63,7 +63,7 @@ static HEX_CASE_TABLE: [u8; 256] = {
 };
 
 /// Fastest case conversion method using lookup table
-pub fn convert_hex_case(hex: &str, to_upper: bool) -> String {
+pub fn convert_case(hex: &str, to_upper: bool) -> String {
     let bytes = hex.as_bytes();
     let mut result = String::with_capacity(bytes.len());
     
