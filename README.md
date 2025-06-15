@@ -2,7 +2,7 @@
 
 > **Project Archived**  
 > This repository is no longer maintained. All development has moved to its next-generation successor:  
-> **[sysz - Next-generation Rust System Utilities](https://github.com/lyric228/sysz)**
+> **[sysz](https://github.com/lyric228/sysz)**
 
 ## Why the transition?
 
