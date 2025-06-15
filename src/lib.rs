@@ -10,7 +10,6 @@ pub mod net {
 pub mod math {
     pub mod bin;
     pub mod hex;
-    pub mod parity;
 }
 pub mod utils {
     pub mod ascii;
