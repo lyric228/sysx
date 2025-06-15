@@ -1,7 +1,6 @@
 use crate::{Result, SysxError};
 
-pub const HEX_CHARS_UPPER: [u8; 16] = *b"0123456789ABCDEF";
-pub const HEX_CHARS_LOWER: [u8; 16] = *b"0123456789abcdef";
+const HEX_CHARS_UPPER: [u8; 16] = *b"0123456789ABCDEF";
 const TO_UPPER_MASK: u8 = 0b11011111;
 const TO_LOWER_MASK: u8 = 0b00100000;
 
@@ -40,44 +39,6 @@ pub fn to_lowercase(hex: &str) -> String {
                 b |= TO_LOWER_MASK;
             }
             out[i] = b;
-        }
-    }
-    result
-}
-
-/// Lookup table for ultra-fast case conversion
-static HEX_CASE_TABLE: [u8; 256] = {
-    let mut table = [0u8; 256];
-    let mut i: usize = 0;
-    while i < 256 {
-        let byte = i as u8;
-        table[i] = match byte {
-            b'0'..=b'9' => byte,
-            b'a'..=b'f' => byte - 32,
-            b'A'..=b'F' => byte + 32,
-            _ => byte,
-        };
-        i += 1;
-    }
-    table
-};
-
-/// Fastest case conversion method using lookup table
-pub fn convert_case(hex: &str, to_upper: bool) -> String {
-    let bytes = hex.as_bytes();
-    let mut result = String::with_capacity(bytes.len());
-    
-    unsafe {
-        let out = result.as_mut_vec();
-        out.set_len(bytes.len());
-        
-        for i in 0..bytes.len() {
-            let b = bytes[i] as usize;
-            out[i] = if to_upper {
-                HEX_CASE_TABLE[b] & TO_UPPER_MASK
-            } else {
-                HEX_CASE_TABLE[b] | TO_LOWER_MASK
-            };
         }
     }
     result
