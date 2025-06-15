@@ -1,7 +1,7 @@
 use crate::{Result, SysxError};
 
 /// Returns a string containing only binary characters ('0' and '1')
-pub fn clean_bin(input: &str) -> String {
+pub fn clean(input: &str) -> String {
     let mut cleaned = String::with_capacity(input.len());
     for c in input.chars() {
         if c == '0' || c == '1' {
@@ -12,7 +12,7 @@ pub fn clean_bin(input: &str) -> String {
 }
 
 /// Converts a binary string to a UTF-8 string
-pub fn bin_to_str(bin: &str) -> Result<String> {
+pub fn decode(bin: &str) -> Result<String> {
     let mut cleaned = String::with_capacity(bin.len());
     let mut is_valid = true;
     
@@ -44,7 +44,7 @@ pub fn bin_to_str(bin: &str) -> Result<String> {
                 let bit = match c {
                     '1' => 1,
                     '0' => 0,
-                    _ => unreachable!(), // Гарантируется очисткой
+                    _ => unreachable!(),
                 };
                 byte |= bit << (7 - i);
             } else {
@@ -58,9 +58,9 @@ pub fn bin_to_str(bin: &str) -> Result<String> {
 }
 
 /// Converts a string to a space-separated binary string
-pub fn str_to_bin(text: &str) -> String {
+pub fn encode(text: &str) -> String {
     let bytes = text.as_bytes();
-    let mut result = String::with_capacity(bytes.len() * 9); // 8 бит + пробел на байт
+    let mut result = String::with_capacity(bytes.len() * 9);
     
     for (i, &byte) in bytes.iter().enumerate() {
         if i > 0 {
@@ -74,12 +74,12 @@ pub fn str_to_bin(text: &str) -> String {
 }
 
 /// Checks if a string contains only '0', '1', and whitespace characters
-pub fn is_valid_bin(bin: &str) -> bool {
+pub fn is_valid(bin: &str) -> bool {
     !bin.is_empty() && bin.chars().all(|c| c.is_whitespace() || c == '0' || c == '1')
 }
 
 /// Strictly validates a binary string
-pub fn is_valid_bin_strict(bin: &str) -> bool {
+pub fn is_valid_strict(bin: &str) -> bool {
     let mut count = 0;
     let mut is_valid = true;
     
@@ -96,8 +96,8 @@ pub fn is_valid_bin_strict(bin: &str) -> bool {
 }
 
 /// Formats a binary string by adding spaces between bytes
-pub fn fmt_bin(bin: &str) -> Result<String> {
-    let cleaned = clean_bin(bin);
+pub fn format(bin: &str) -> Result<String> {
+    let cleaned = clean(bin);
     let len = cleaned.len();
     
     if len == 0 {

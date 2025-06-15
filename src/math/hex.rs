@@ -108,12 +108,12 @@ pub fn encode(text: &str) -> String {
 }
 
 /// Checks if a string contains only hex characters and whitespace
-pub fn check(hex: &str) -> bool {
+pub fn is_valid(hex: &str) -> bool {
     !hex.is_empty() && hex.chars().all(|c| c.is_whitespace() || c.is_ascii_hexdigit())
 }
 
 /// Checks if a whitespace-cleaned hex string has even length and valid hex digits
-pub fn check_strict(hex: &str) -> bool {
+pub fn is_valid_strict(hex: &str) -> bool {
     let mut length = 0;
     let mut is_valid = true;
     
