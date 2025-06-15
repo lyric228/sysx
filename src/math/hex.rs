@@ -1,10 +1,9 @@
 use crate::{Result, SysxError};
-use crate::math::parity::is_odd;
 
-const HEX_CHARS_UPPER: [u8; 16] = *b"0123456789ABCDEF";
-const HEX_CHARS_LOWER: [u8; 16] = *b"0123456789abcdef";
-const TO_UPPER_MASK: u8 = 0b1101_1111;
-const TO_LOWER_MASK: u8 = 0b0010_0000;
+pub const HEX_CHARS_UPPER: [u8; 16] = *b"0123456789ABCDEF";
+pub const HEX_CHARS_LOWER: [u8; 16] = *b"0123456789abcdef";
+const TO_UPPER_MASK: u8 = 0b11011111;
+const TO_LOWER_MASK: u8 = 0b00100000;
 
 /// Fast conversion of hex string to uppercase
 pub fn to_uppercase_fast(hex: &str) -> String {
